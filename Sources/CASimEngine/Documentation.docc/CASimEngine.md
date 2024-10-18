@@ -8,8 +8,8 @@
 
 ### Running the simulation
 
-- ``tick(deltaTime:)-xlyj``
-- ``tick(deltaTime:)-4dohs``
+- ``tick(deltaTime:)``
+- ``tickSync(deltaTime:)``
 
 ### Accessing the simulation
 

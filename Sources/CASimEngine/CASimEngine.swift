@@ -3,8 +3,8 @@ public import Voxels
 /// A cellular automata simulation engine.
 ///
 /// Initialize the engine with a collection of voxels and rules that operate on those voxels.
-/// Increment the simulation synchronously using ``tick(deltaTime:)-4dohs``, or asynchronously using
-/// ``tick(deltaTime:)-xlyj``.
+/// Increment the simulation synchronously using ``tickSync(deltaTime:)``, or asynchronously using
+/// ``tick(deltaTime:)``.
 ///
 /// During operation, the engine runs the rules in the order that you provide them when creating the engine.
 ///
@@ -153,7 +153,7 @@ public final class CASimEngine<T: Sendable> {
 
     /// Synchronously runs all rules, in order, updating the simulations voxels.
     /// - Parameter deltaTime: The time step to use for the rule evaluation.
-    public func tick(deltaTime: Duration) {
+    public func tickSync(deltaTime: Duration) {
         for r in rules {
             evaluate(deltaTime: deltaTime, rule: r)
         }
