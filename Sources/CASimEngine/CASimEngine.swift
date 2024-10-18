@@ -17,12 +17,12 @@ public final class CASimEngine<T: Sendable> {
     // flip-flop writing in the voxel storage collections
     // as the CA simulation progresses. This keeps allocations
     // to a bare minimum.
-    var _voxelStorage1: VoxelHash<T>
-    var _voxelStorage2: VoxelHash<T>
+    var _voxelStorage1: VoxelArray<T>
+    var _voxelStorage2: VoxelArray<T>
     var activeStorage: Bool
 
     /// The collection of voxels
-    public var voxels: VoxelHash<T> {
+    public var voxels: VoxelArray<T> {
         activeStorage ? _voxelStorage1 : _voxelStorage2
     }
 
@@ -34,10 +34,18 @@ public final class CASimEngine<T: Sendable> {
     public let diagnosticStream: AsyncStream<CADiagnostic>
     let _diagnosticContinuation: AsyncStream<CADiagnostic>.Continuation
 
-    public init(_ seed: VoxelHash<T>, rules: [CASimRule<T>]) {
-        _voxelStorage1 = seed
-        _voxelStorage2 = _voxelStorage1
+    public init(_ seed: any VoxelAccessible<T>, rules: [CASimRule<T>]) {
+        guard let firstValueFound = seed.first else {
+            fatalError("No values found in voxel collection")
+        }
+        // initialize array
+        _voxelStorage1 = VoxelArray(bounds: seed.bounds, initialValue: firstValueFound)
         bounds = seed.bounds
+        // copy in from the seed
+        for idx in seed.indices {
+            _voxelStorage1[idx] = seed[idx]
+        }
+        _voxelStorage2 = _voxelStorage1
         activeStorage = true
         // set all voxels as initially active
         activeVoxels = []
@@ -75,8 +83,8 @@ public final class CASimEngine<T: Sendable> {
         // make a reference copy to update for the storage to poke into
         // activeStorage is true: _voxelStorage1 is the set getting updated and _voxelStorage2 is the
         // read-only version to read from.
-        var newHash: VoxelHash<T>
-        let oldHash: VoxelHash<T>
+        var newHash: VoxelArray<T>
+        let oldHash: VoxelArray<T>
         if activeStorage {
             newHash = _voxelStorage1
             oldHash = _voxelStorage2
@@ -156,8 +164,8 @@ public final class CASimEngine<T: Sendable> {
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
     func evaluate(deltaTime: Duration, rule: CASimRule<T>) {
-        var newHash: VoxelHash<T>
-        let oldHash: VoxelHash<T>
+        var newHash: VoxelArray<T>
+        let oldHash: VoxelArray<T>
         if activeStorage {
             newHash = _voxelStorage1
             oldHash = _voxelStorage2
@@ -235,8 +243,8 @@ public final class CASimEngine<T: Sendable> {
     @discardableResult public func diagnosticEvaluate(deltaTime: Duration, rule: CASimRule<T>) -> [CADiagnostic] {
         var diagnostics: [CADiagnostic] = []
 
-        var newHash: VoxelHash<T>
-        let oldHash: VoxelHash<T>
+        var newHash: VoxelArray<T>
+        let oldHash: VoxelArray<T>
         if activeStorage {
             newHash = _voxelStorage1
             oldHash = _voxelStorage2
