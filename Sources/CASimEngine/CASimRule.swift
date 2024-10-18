@@ -15,7 +15,7 @@ public import Voxels
 /// To test a rule against a single voxel within a collection, use ``CASimRule/evaluate(index:voxels:deltaTime:)``, which returns ``CADetailedDiagnostic`` for in-depth inspection of before and after values.
 
 public struct CASimRule<T: Sendable>: Sendable {
-    public typealias CASimRuleClosure = @Sendable (VoxelIndex, VoxelHash<T>, Duration) -> CAResult<T>
+    public typealias CASimRuleClosure = @Sendable (VoxelIndex, VoxelArray<T>, Duration) -> CAResult<T>
     public let name: String
     public let scope: CARuleProcessingScope
     public let closure: CASimRuleClosure
@@ -26,7 +26,7 @@ public struct CASimRule<T: Sendable>: Sendable {
         self.closure = closure
     }
 
-    public func evaluate(index: VoxelIndex, voxels: VoxelHash<T>, deltaTime: Duration) -> CADetailedDiagnostic<T>? {
+    public func evaluate(index: VoxelIndex, voxels: VoxelArray<T>, deltaTime: Duration) -> CADetailedDiagnostic<T>? {
         guard let initialValue = voxels[index] else { return nil
         }
         let processResult: CAResult<T> = closure(index, voxels, deltaTime)
