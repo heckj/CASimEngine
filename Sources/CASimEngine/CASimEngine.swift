@@ -1,4 +1,5 @@
 public import Voxels
+import Algorithms
 
 /// A cellular automata simulation engine.
 ///
@@ -79,7 +80,7 @@ public final class CASimEngine<T: Sendable> {
     /// - Parameters:
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
-    public func tick(deltaTime: Duration, rule: CASimRule<T>) async {
+    public func tick(deltaTime: Duration, rule: CASimRule<T>, chunkSize _: Int = 1000) async {
         // make a reference copy to update for the storage to poke into
         // activeStorage is true: _voxelStorage1 is the set getting updated and _voxelStorage2 is the
         // read-only version to read from.
@@ -93,6 +94,7 @@ public final class CASimEngine<T: Sendable> {
             oldHash = _voxelStorage1
         }
         var newActives: Set<VoxelIndex> = []
+//        let chunkedActives = activeVoxels.chunks(ofCount: chunkSize)
 
         let asyncActives = await withTaskGroup(of: CAResult<T>.self, returning: Set<VoxelIndex>.self) { taskgroup in
             switch rule.scope {
