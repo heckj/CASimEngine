@@ -9,7 +9,6 @@
 ### Running the simulation
 
 - ``tick(deltaTime:)``
-- ``tickSync(deltaTime:)``
 
 ### Accessing the simulation
 
@@ -18,5 +17,4 @@
 
 ### Testing Rules
 
-- ``tick(deltaTime:rule:)``
 - ``diagnosticEvaluate(deltaTime:rule:)``

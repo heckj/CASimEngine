@@ -46,5 +46,6 @@ let package = Package(
             name: "CASimEngineTests",
             dependencies: ["CASimEngine"]
         ),
-    ]
+    ],
+    swiftLanguageVersions: [.version("6"), .v5]
 )

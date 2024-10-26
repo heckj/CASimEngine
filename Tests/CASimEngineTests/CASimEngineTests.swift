@@ -20,9 +20,9 @@ final class EngineTests: XCTestCase {
 
         XCTAssertEqual(engine.activeVoxels.count, 10 * 10 * 10)
 
-        await engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
+        engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         XCTAssertEqual(engine.activeVoxels.count, 0)
 
-        engine.tickSync(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
+        engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
     }
 }
