@@ -41,14 +41,14 @@ public final class CASimEngine<T: Sendable> {
         _voxelStorage1 = VoxelArray(bounds: seed.bounds, initialValue: firstValueFound)
         bounds = seed.bounds
         // copy in from the seed
-        for idx in seed.indices {
+        for idx in seed.bounds {
             _voxelStorage1[idx] = seed[idx]
         }
         _voxelStorage2 = _voxelStorage1
         activeStorage = true
         // set all voxels as initially active
         activeVoxels = []
-        for idx in bounds.indices {
+        for idx in bounds {
             activeVoxels.insert(idx)
         }
         self.rules = rules
@@ -98,7 +98,7 @@ public final class CASimEngine<T: Sendable> {
             }
             activeVoxels = newActives
         case .all:
-            for i in oldHash.bounds.indices {
+            for i in oldHash.bounds {
                 let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
                 if let updatedVoxel = processResult.updatedVoxel {
                     newActives.insert(i)
@@ -113,7 +113,7 @@ public final class CASimEngine<T: Sendable> {
         case let .bounds(scopeBounds):
             // DOES NOT influence set of actives
             assert(oldHash.bounds.contains(scopeBounds))
-            for i in scopeBounds.indices {
+            for i in scopeBounds {
                 let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
                 if let updatedVoxel = processResult.updatedVoxel {
                     newHash[i] = updatedVoxel
@@ -177,7 +177,7 @@ public final class CASimEngine<T: Sendable> {
             }
             activeVoxels = newActives
         case .all:
-            for i in oldHash.bounds.indices {
+            for i in oldHash.bounds {
                 let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
                 if let updatedVoxel = processResult.updatedVoxel {
                     newActives.insert(i)
@@ -192,7 +192,7 @@ public final class CASimEngine<T: Sendable> {
         case let .bounds(scopeBounds):
             // DOES NOT influence set of actives
             assert(oldHash.bounds.contains(scopeBounds))
-            for i in scopeBounds.indices {
+            for i in scopeBounds {
                 let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
                 if let updatedVoxel = processResult.updatedVoxel {
                     newHash[i] = updatedVoxel
