@@ -29,16 +29,12 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.0.0"),
         .package(url: "https://github.com/heckj/voxels", from: "0.2.0"),
-        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
-        .package(url: "https://github.com/mtj0928/swift-async-operations", from: "0.1.0"),
     ],
     targets: [
         .target(
             name: "CASimEngine",
             dependencies: [
                 .product(name: "Voxels", package: "voxels"),
-                .product(name: "Algorithms", package: "swift-algorithms"),
-                .product(name: "AsyncOperations", package: "swift-async-operations"),
             ],
             swiftSettings: globalSwiftSettings
         ),
