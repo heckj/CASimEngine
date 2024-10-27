@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heckj/voxels",
       "state" : {
-        "revision" : "cb63cc861560d8f63aef0a79a3e83c48d2e5b5e1",
-        "version" : "0.2.2"
+        "revision" : "70486932b3c966338f71d2cf66ee84f87d61310f",
+        "version" : "0.2.4"
       }
     }
   ],
