@@ -1,5 +1,4 @@
 public import Voxels
-import Algorithms
 
 /// A cellular automata simulation engine.
 ///
