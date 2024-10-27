@@ -8,8 +8,7 @@ public import Voxels
 ///
 /// ### Testing Rules
 ///
-/// For testing a single rule against a collection of voxels, use ``CASimEngine/CASimEngine/tick(deltaTime:rule:)`` and consume a stream of
-/// ``CADiagnostic`` from ``CASimEngine/CASimEngine/diagnosticStream``.
+/// For testing a single rule against a collection of voxels, use ``CASimRule/evaluate(index:voxels:deltaTime:)``.
 /// To synchronously test a rule against a collection of voxels, use ``CASimEngine/CASimEngine/diagnosticEvaluate(deltaTime:rule:)`` which returns a list of ``CADiagnostic`` from the processing.
 ///
 /// To test a rule against a single voxel within a collection, use ``CASimRule/evaluate(index:voxels:deltaTime:)``, which returns ``CADetailedDiagnostic`` for in-depth inspection of before and after values.
