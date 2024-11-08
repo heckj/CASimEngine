@@ -39,9 +39,9 @@ let package = Package(
         ),
         .testTarget(
             name: "CASimEngineTests",
-            dependencies: ["CASimEngine"]
+            dependencies: ["CASimEngine"],
+            swiftSettings: globalSwiftSettings
         ),
     ],
-    //swiftLanguageVersions: [.version("6"), .v5]
-    swiftLanguageVersions: [.v5]
+    swiftLanguageVersions: [.version("6"), .v5]
 )
