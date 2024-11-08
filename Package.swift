@@ -8,7 +8,6 @@ var globalSwiftSettings: [PackageDescription.SwiftSetting] = [
     .enableExperimentalFeature("StrictConcurrency"),
     // Swift 6 enablement
     // .enableUpcomingFeature("StrictConcurrency")
-    // .swiftLanguageVersion(.v5)
     .enableUpcomingFeature("ExistentialAny"),
     .enableExperimentalFeature("AccessLevelOnImport"),
     .enableUpcomingFeature("InternalImportsByDefault"),
@@ -43,5 +42,6 @@ let package = Package(
             dependencies: ["CASimEngine"]
         ),
     ],
-    swiftLanguageVersions: [.version("6"), .v5]
+    //swiftLanguageVersions: [.version("6"), .v5]
+    swiftLanguageVersions: [.v5]
 )
