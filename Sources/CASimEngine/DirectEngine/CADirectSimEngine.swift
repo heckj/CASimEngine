@@ -10,9 +10,7 @@ public import Voxels
 ///
 /// For testing a single rule against a collection of voxels, use ``CASimRule/evaluate(index:voxels:deltaTime:)``.
 /// To synchronously test a rule against a collection of voxels, use ``diagnosticEvaluate(deltaTime:rule:)`` which returns a list of ``CADiagnostic`` from the processing.
-///
-/// To test a rule against a single voxel within a collection, use ``CASimRule/evaluate(index:voxels:deltaTime:)``, which returns ``CADetailedDiagnostic`` for in-depth inspection of before and after values.
-public final class CASimEngine<T: Sendable> {
+public final class CADirectSimEngine<T: Sendable> {
     // flip-flop writing in the voxel storage collections
     // as the CA simulation progresses. This keeps allocations
     // to a bare minimum.
@@ -28,12 +26,13 @@ public final class CASimEngine<T: Sendable> {
     var activeVoxels: Set<VoxelIndex>
     let bounds: VoxelBounds
 
-    let rules: [CASimRule<T>]
+    let rules: [any CASimulationRule<T>]
+
     /// An asynchronous stream of diagnostics generated from your rules.
     public let diagnosticStream: AsyncStream<CADiagnostic>
     let _diagnosticContinuation: AsyncStream<CADiagnostic>.Continuation
 
-    public init(_ seed: any VoxelAccessible<T>, rules: [CASimRule<T>]) {
+    public init(_ seed: any VoxelAccessible<T>, rules: [any CASimulationRule<T>]) {
         guard let firstValueFound = seed.first else {
             fatalError("No values found in voxel collection")
         }
@@ -71,7 +70,7 @@ public final class CASimEngine<T: Sendable> {
     /// - Parameters:
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
-    func evaluate(deltaTime: Duration, rule: CASimRule<T>) {
+    func evaluate(deltaTime: Duration, rule: some CASimulationRule<T>) {
         var newHash: VoxelArray<T>
         let oldHash: VoxelArray<T>
         if activeStorage {
@@ -86,27 +85,25 @@ public final class CASimEngine<T: Sendable> {
         switch rule.scope {
         case .active:
             for i in activeVoxels {
-                let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
-                if let updatedVoxel = processResult.updatedVoxel {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if result.updatedVoxel {
                     newActives.insert(i)
-                    newHash[i] = updatedVoxel
                 }
-                if !processResult.messages.isEmpty {
+                if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
-                        CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
             activeVoxels = newActives
         case .all:
             for i in oldHash.bounds {
-                let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
-                if let updatedVoxel = processResult.updatedVoxel {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if result.updatedVoxel {
                     newActives.insert(i)
-                    newHash[i] = updatedVoxel
                 }
-                if !processResult.messages.isEmpty {
+                if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
-                        CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
             activeVoxels = newActives
@@ -114,24 +111,26 @@ public final class CASimEngine<T: Sendable> {
             // DOES NOT influence set of actives
             assert(oldHash.bounds.contains(scopeBounds))
             for i in scopeBounds {
-                let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
-                if let updatedVoxel = processResult.updatedVoxel {
-                    newHash[i] = updatedVoxel
-                }
-                if !processResult.messages.isEmpty {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
-                        CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
         case let .index(singleIndex):
             // DOES NOT influence set of actives
-            let processResult: CAResult<T> = rule.closure(singleIndex, oldHash, deltaTime)
-            if let updatedVoxel = processResult.updatedVoxel {
-                newHash[singleIndex] = updatedVoxel
-            }
-            if !processResult.messages.isEmpty {
+            let result = rule.evaluate(index: singleIndex, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+            if let diagnostic = result.diagnostic {
                 _diagnosticContinuation.yield(
-                    CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                    CADiagnostic(index: singleIndex, rule: rule.name, messages: diagnostic.messages))
+            }
+        case let .collection(indices):
+            for i in indices {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if let diagnostic = result.diagnostic {
+                    _diagnosticContinuation.yield(
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
+                }
             }
         }
 
@@ -148,7 +147,7 @@ public final class CASimEngine<T: Sendable> {
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
     /// - Returns: A collection of diagnostic messages from the rule.
-    @discardableResult public func diagnosticEvaluate(deltaTime: Duration, rule: CASimRule<T>) -> [CADiagnostic] {
+    @discardableResult public func diagnosticEvaluate(deltaTime: Duration, rule: some CASimulationRule<T>) -> [CADiagnostic] {
         var diagnostics: [CADiagnostic] = []
 
         var newHash: VoxelArray<T>
@@ -165,27 +164,25 @@ public final class CASimEngine<T: Sendable> {
         switch rule.scope {
         case .active:
             for i in activeVoxels {
-                let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
-                if let updatedVoxel = processResult.updatedVoxel {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if result.updatedVoxel {
                     newActives.insert(i)
-                    newHash[i] = updatedVoxel
                 }
-                if !processResult.messages.isEmpty {
+                if let diagnostic = result.diagnostic {
                     diagnostics.append(
-                        CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
             activeVoxels = newActives
         case .all:
             for i in oldHash.bounds {
-                let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
-                if let updatedVoxel = processResult.updatedVoxel {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if result.updatedVoxel {
                     newActives.insert(i)
-                    newHash[i] = updatedVoxel
                 }
-                if !processResult.messages.isEmpty {
+                if let diagnostic = result.diagnostic {
                     diagnostics.append(
-                        CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
             activeVoxels = newActives
@@ -193,24 +190,26 @@ public final class CASimEngine<T: Sendable> {
             // DOES NOT influence set of actives
             assert(oldHash.bounds.contains(scopeBounds))
             for i in scopeBounds {
-                let processResult: CAResult<T> = rule.closure(i, oldHash, deltaTime)
-                if let updatedVoxel = processResult.updatedVoxel {
-                    newHash[i] = updatedVoxel
-                }
-                if !processResult.messages.isEmpty {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if let diagnostic = result.diagnostic {
                     diagnostics.append(
-                        CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
         case let .index(singleIndex):
             // DOES NOT influence set of actives
-            let processResult: CAResult<T> = rule.closure(singleIndex, oldHash, deltaTime)
-            if let updatedVoxel = processResult.updatedVoxel {
-                newHash[singleIndex] = updatedVoxel
-            }
-            if !processResult.messages.isEmpty {
+            let result = rule.evaluate(index: singleIndex, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+            if let diagnostic = result.diagnostic {
                 diagnostics.append(
-                    CADiagnostic(index: processResult.index, rule: rule.name, messages: processResult.messages))
+                    CADiagnostic(index: singleIndex, rule: rule.name, messages: diagnostic.messages))
+            }
+        case let .collection(indices):
+            for i in indices {
+                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                if let diagnostic = result.diagnostic {
+                    _diagnosticContinuation.yield(
+                        CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
+                }
             }
         }
 
@@ -222,16 +221,4 @@ public final class CASimEngine<T: Sendable> {
         activeStorage.toggle()
         return diagnostics
     }
-
-    // rule flow?
-    // gravity/drop - apply if flowing/moving/active - checking adhesion to side neighbors, and above
-    // gravity/flow - apply if flowing/moving/active
-    // heat diffusion - apply everywhere
-    // if state-change from ∂-heat, add to active
-
-    // StarsReach uses 9 bytes per voxel index
-    // 1 - temperature at index (8 remaining)
-    // 1 - type of resource (allow 255 variants) (7 remaining)
-    // 1 - mass of type (6 remaining)
-    // 3 x 2 - velocity (FP) in X, Y, and Z vectorsxs
 }

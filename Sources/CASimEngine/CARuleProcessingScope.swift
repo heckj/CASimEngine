@@ -1,6 +1,6 @@
 public import Voxels
 
-/// The scope for processing a rule.
+/// The set of voxels within the collection that the engine processes.
 ///
 /// The default scope is ``active``, which represents the set of voxels that were updated by the previous rule.
 public enum CARuleProcessingScope: Sendable {
@@ -12,4 +12,6 @@ public enum CARuleProcessingScope: Sendable {
     case index(VoxelIndex)
     /// A range of voxels.
     case bounds(VoxelBounds)
+    /// A specified collection of indices
+    case collection([VoxelIndex])
 }
