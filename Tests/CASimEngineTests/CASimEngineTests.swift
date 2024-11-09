@@ -3,7 +3,7 @@ internal import Voxels
 import XCTest // import Testing for 6.0...
 
 final class EngineTests: XCTestCase {
-    func testSimplestRule() async throws {
+    func testSimplestRule() throws {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(99, 99, 99))
         var seed = VoxelArray(bounds: bounds, initialValue: 0)
         for idx in bounds.y(0 ... 0).indices {
