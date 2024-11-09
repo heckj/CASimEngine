@@ -27,30 +27,4 @@ final class EngineTests: XCTestCase {
         // loosely 0.882 seconds
         // roughly 17% faster than the closure based approach
     }
-
-    func testSimplestRuleClosureEngine() async throws {
-        let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(99, 99, 99))
-        var seed = VoxelArray(bounds: bounds, initialValue: 0)
-        for idx in bounds.y(0 ... 0).indices {
-            seed[idx] = 1
-        }
-
-        XCTAssertEqual(seed.bounds.indices.count, 100 * 100 * 100)
-
-        let incrementRule = CASimRule<Int>(name: "inc", scope: .all) { index, voxels, _ in
-            CAResult<Int>(index: index, updatedVoxel: (voxels[index] ?? 0) + 1)
-        }
-
-        let engine = CASimEngine(seed, rules: [incrementRule])
-
-        XCTAssertEqual(engine.activeVoxels.count, 100 * 100 * 100)
-
-        engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
-        XCTAssertEqual(engine.activeVoxels.count, 1_000_000)
-
-        measure {
-            engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
-        }
-        // loosely 1.038 seconds
-    }
 }

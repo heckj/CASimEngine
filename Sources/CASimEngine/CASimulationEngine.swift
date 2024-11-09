@@ -72,21 +72,21 @@ public final class CASimulationEngine<T: Sendable> {
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
     func evaluate(deltaTime: Duration, rule: some CASimulationRule<T>) {
-        var newHash: VoxelArray<T>
-        let oldHash: VoxelArray<T>
+        var newVoxels: VoxelArray<T>
+        let currentVoxels: VoxelArray<T>
         if activeStorage {
-            newHash = _voxelStorage1
-            oldHash = _voxelStorage2
+            newVoxels = _voxelStorage1
+            currentVoxels = _voxelStorage2
         } else {
-            newHash = _voxelStorage2
-            oldHash = _voxelStorage1
+            newVoxels = _voxelStorage2
+            currentVoxels = _voxelStorage1
         }
         var newActives: Set<VoxelIndex> = []
 
         switch rule.scope {
         case .active:
             for i in activeVoxels {
-                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &newVoxels, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.insert(i)
                 }
@@ -97,8 +97,8 @@ public final class CASimulationEngine<T: Sendable> {
             }
             activeVoxels = newActives
         case .all:
-            for i in oldHash.bounds {
-                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+            for i in currentVoxels.bounds {
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &newVoxels, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.insert(i)
                 }
@@ -110,9 +110,9 @@ public final class CASimulationEngine<T: Sendable> {
             activeVoxels = newActives
         case let .bounds(scopeBounds):
             // DOES NOT influence set of actives
-            assert(oldHash.bounds.contains(scopeBounds))
+            assert(currentVoxels.bounds.contains(scopeBounds))
             for i in scopeBounds {
-                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &newVoxels, deltaTime: deltaTime)
                 if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
                         CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
@@ -120,14 +120,14 @@ public final class CASimulationEngine<T: Sendable> {
             }
         case let .index(singleIndex):
             // DOES NOT influence set of actives
-            let result = rule.evaluate(index: singleIndex, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+            let result = rule.evaluate(index: singleIndex, readVoxels: currentVoxels, writeVoxels: &newVoxels, deltaTime: deltaTime)
             if let diagnostic = result.diagnostic {
                 _diagnosticContinuation.yield(
                     CADiagnostic(index: singleIndex, rule: rule.name, messages: diagnostic.messages))
             }
         case let .collection(indices):
             for i in indices {
-                let result = rule.evaluate(index: i, readVoxels: oldHash, writeVoxels: &newHash, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &newVoxels, deltaTime: deltaTime)
                 if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
                         CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
@@ -136,9 +136,9 @@ public final class CASimulationEngine<T: Sendable> {
         }
 
         if activeStorage {
-            _voxelStorage1 = newHash
+            _voxelStorage1 = newVoxels
         } else {
-            _voxelStorage2 = newHash
+            _voxelStorage2 = newVoxels
         }
         activeStorage.toggle()
     }
