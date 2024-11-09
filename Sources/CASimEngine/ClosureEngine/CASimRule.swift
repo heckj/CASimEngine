@@ -16,10 +16,10 @@ public import Voxels
 public struct CASimRule<T: Sendable>: Sendable {
     public typealias CASimRuleClosure = @Sendable (VoxelIndex, VoxelArray<T>, Duration) -> CAResult<T>
     public let name: String
-    public let scope: CARuleProcessingScope
+    public let scope: CARuleScope
     public let closure: CASimRuleClosure
 
-    public init(name: String, scope: CARuleProcessingScope = .active, closure: @escaping CASimRuleClosure) {
+    public init(name: String, scope: CARuleScope = .active, closure: @escaping CASimRuleClosure) {
         self.name = name
         self.scope = scope
         self.closure = closure

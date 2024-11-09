@@ -7,7 +7,7 @@ public struct CADetailedDiagnostic<T: Sendable>: Sendable {
     /// The name of the rule.
     public let rule: String
     /// The voxel's value prior to invoking the rule.
-    public let initialValue: T
+    public let initialValue: T?
     /// The voxel's value after to invoking the rule.
     /// A `nil` value indicates the voxel was not changed from the initial value.
     public let finalValue: T?
