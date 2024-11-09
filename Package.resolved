@@ -1,13 +1,12 @@
 {
-  "originHash" : "7b858398946ec418544fea2c6aae2fa322d7ba7160e1d6dc472b351f1221cd84",
   "pins" : [
     {
       "identity" : "heightmap",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heckj/Heightmap",
       "state" : {
-        "revision" : "b3e32343bcb9d78f31f3fa45084dda4be6062aa1",
-        "version" : "0.6.2"
+        "revision" : "93436af1ed955f1599f1dc67752cda8d0ef2c385",
+        "version" : "0.6.3"
       }
     },
     {
@@ -42,10 +41,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heckj/voxels",
       "state" : {
-        "revision" : "70486932b3c966338f71d2cf66ee84f87d61310f",
-        "version" : "0.2.4"
+        "revision" : "a472f8013e0c857ed264caa783957af183c2847d",
+        "version" : "0.2.5"
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

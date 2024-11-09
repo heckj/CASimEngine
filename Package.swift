@@ -1,4 +1,4 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 5.8
 // Swift 5.9 to support Xcode 15.2 on GitHub Actions
 // Swift 5.10 requires Xcode 15.4 in GitHub Actions
 
@@ -16,8 +16,8 @@ var globalSwiftSettings: [PackageDescription.SwiftSetting] = [
 let package = Package(
     name: "CASimEngine",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14),
+        .iOS(.v16),
+        .macOS(.v13),
     ],
     products: [
         .library(
