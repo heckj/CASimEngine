@@ -7,9 +7,9 @@ struct IncrementRule: CASimulationRule {
     public let name: String = "NoEffectKeepActive"
     public let scope: CARuleScope = .all
 
-    public func evaluate(index: Voxels.VoxelIndex, readVoxels: Voxels.VoxelArray<VoxelType>, writeVoxels: inout Voxels.VoxelArray<VoxelType>, deltaTime _: Duration) -> CARuleResult {
+    public func evaluate(index: Voxels.VoxelIndex, readVoxels: Voxels.VoxelArray<VoxelType>, writeVoxels: inout VoxelType, deltaTime _: Duration) -> CARuleResult {
         // all actives stay active
-        writeVoxels[index] = (readVoxels[index] ?? 0) + 1
+        writeVoxels = (readVoxels[index] ?? 0) + 1
         return .indexUpdated
     }
 }
