@@ -17,11 +17,11 @@ Call ``CASimEngine/tick(deltaTime:)`` to increment the simulation.
 
 ### Writing Simulation Rules
 
-- ``CASimRule``
-- ``CAResult``
-- ``CARuleProcessingScope``
+- ``CASimulationRule``
+- ``CARuleScope``
+- ``CARuleResult``
 
-### Testing Rules
+### Diagnostics
 
 - ``CADiagnostic``
 - ``CADetailedDiagnostic``
