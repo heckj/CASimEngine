@@ -8,7 +8,7 @@ public protocol CASimulationRule<VoxelType>: Sendable {
     var name: String { get }
     /// The set of voxels to process.
     var scope: CARuleScope { get }
-    
+
     /// The function that the simulation engine calls to process a voxel.
     /// - Parameters:
     ///   - index: The index of the voxel within the simulation.
