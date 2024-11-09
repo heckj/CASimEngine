@@ -13,8 +13,8 @@ public protocol CASimulationRule<VoxelType>: Sendable {
     /// - Parameters:
     ///   - index: The index of the voxel within the simulation.
     ///   - readVoxels: The set of voxels that hold the current state.
-    ///   - writeVoxels: The set of voxels to hold updated state.
+    ///   - newVoxel: The voxel to update.
     ///   - deltaTime: The change in time in the simulation.
     /// - Returns: A result that indicates if the evaluation changed a voxel, and optionally diagnostic messages from this rule.
-    func evaluate(index: VoxelIndex, readVoxels: VoxelArray<VoxelType>, writeVoxels: inout VoxelType, deltaTime: Duration) -> CARuleResult
+    func evaluate(index: VoxelIndex, readVoxels: VoxelArray<VoxelType>, newVoxel: inout VoxelType, deltaTime: Duration) -> CARuleResult
 }

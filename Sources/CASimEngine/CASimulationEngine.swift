@@ -87,7 +87,7 @@ public final class CASimulationEngine<T: Sendable> {
         case .active:
             for i in activeVoxels {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.insert(i)
                     newVoxels[i] = temp
@@ -101,7 +101,7 @@ public final class CASimulationEngine<T: Sendable> {
         case .all:
             for i in currentVoxels.bounds {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.insert(i)
                     newVoxels[i] = temp
@@ -117,7 +117,7 @@ public final class CASimulationEngine<T: Sendable> {
             assert(currentVoxels.bounds.contains(scopeBounds))
             for i in scopeBounds {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newVoxels[i] = temp
                 }
@@ -129,7 +129,7 @@ public final class CASimulationEngine<T: Sendable> {
         case let .index(singleIndex):
             // DOES NOT influence set of actives
             if var temp = currentVoxels[singleIndex] {
-                let result = rule.evaluate(index: singleIndex, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: singleIndex, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newVoxels[singleIndex] = temp
                 }
@@ -141,7 +141,7 @@ public final class CASimulationEngine<T: Sendable> {
         case let .collection(indices):
             for i in indices {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newVoxels[i] = temp
                 }
@@ -183,7 +183,7 @@ public final class CASimulationEngine<T: Sendable> {
         case .active:
             for i in activeVoxels {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.insert(i)
                     newVoxels[i] = temp
@@ -200,7 +200,7 @@ public final class CASimulationEngine<T: Sendable> {
         case .all:
             for i in currentVoxels.bounds {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.insert(i)
                     newVoxels[i] = temp
@@ -219,7 +219,7 @@ public final class CASimulationEngine<T: Sendable> {
             assert(currentVoxels.bounds.contains(scopeBounds))
             for i in scopeBounds {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newVoxels[i] = temp
                 }
@@ -236,7 +236,7 @@ public final class CASimulationEngine<T: Sendable> {
         case let .index(singleIndex):
             // DOES NOT influence set of actives
             if var temp = currentVoxels[singleIndex] {
-                let result = rule.evaluate(index: singleIndex, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: singleIndex, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newVoxels[singleIndex] = temp
                 }
@@ -253,7 +253,7 @@ public final class CASimulationEngine<T: Sendable> {
         case let .collection(indices):
             for i in indices {
                 guard var temp = currentVoxels[i] else { continue }
-                let result = rule.evaluate(index: i, readVoxels: currentVoxels, writeVoxels: &temp, deltaTime: deltaTime)
+                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     diagnostics.append(
                         CADetailedDiagnostic(index: i, rule: rule.name, initialValue: currentVoxels[i], finalValue: newVoxels[i], messages: result.diagnostic?.messages ?? [])
