@@ -1,6 +1,10 @@
 public import Voxels
 
 /// A diagnostic event from processing a single voxel.
+///
+/// A diagnostic consists of the index of the voxel location processed,
+/// the name of the rule, and a collection of messages returned
+/// from the rule execution.
 public struct CADiagnostic: Sendable {
     /// The index of the voxel.
     public let index: VoxelIndex

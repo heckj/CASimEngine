@@ -21,7 +21,7 @@ Call ``CASimulationEngine/tick(deltaTime:)`` to increment the simulation.
 - ``CARuleScope``
 - ``CARuleResult``
 
-### Diagnostics
+### Receiving Diagnostics from Rules
 
 - ``CADiagnostic``
 - ``CADetailedDiagnostic``
