@@ -1,6 +1,10 @@
 public import Voxels
 
 /// A detailed diagnostic event from processing a single voxel.
+///
+/// A detailed diagnostic includes the same components as
+/// ``CADiagnostic``. It adds to that set the initial value
+/// of the voxel, and the output value that the rule generated.
 public struct CADetailedDiagnostic<T: Sendable>: Sendable {
     /// The index of the voxel.
     public let index: VoxelIndex
