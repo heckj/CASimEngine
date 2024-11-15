@@ -17,6 +17,10 @@ Comparing to a the baseline 'alpha'
 
     swift package benchmark baseline compare 0.1.0
 
+or, to output with markdown format to paste into a PR:
+
+    swift package benchmark baseline compare dev --format markdown
+
 For more details on creating and comparing baselines, read [Creating and Comparing Benchmark Baselines](https://swiftpackageindex.com/ordo-one/package-benchmark/main/documentation/benchmark/creatingandcomparingbaselines).
 
 ## baseline per tag:

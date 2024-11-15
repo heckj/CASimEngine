@@ -21,7 +21,8 @@ public final class CASimulationEngine<T: Sendable> {
         activeStorage ? _voxelStorage1 : _voxelStorage2
     }
 
-    var activeVoxels: Set<VoxelIndex>
+    var _actives: [VoxelIndex] = []
+
     let bounds: VoxelBounds
 
     let rules: [any CASimulationRule<T>]
@@ -44,10 +45,7 @@ public final class CASimulationEngine<T: Sendable> {
         _voxelStorage2 = _voxelStorage1
         activeStorage = true
         // set all voxels as initially active
-        activeVoxels = []
-        for idx in bounds {
-            activeVoxels.insert(idx)
-        }
+        _actives = Array(_voxelStorage1.bounds)
         self.rules = rules
         (diagnosticStream, _diagnosticContinuation) = AsyncStream.makeStream(of: CADiagnostic.self)
     }
@@ -74,6 +72,7 @@ public final class CASimulationEngine<T: Sendable> {
     func evaluate(deltaTime: Duration, rule: some CASimulationRule<T>) {
         var newVoxels: VoxelArray<T>
         let currentVoxels: VoxelArray<T>
+        var newActives: [VoxelIndex] = []
         if activeStorage {
             newVoxels = _voxelStorage1
             currentVoxels = _voxelStorage2
@@ -81,15 +80,14 @@ public final class CASimulationEngine<T: Sendable> {
             newVoxels = _voxelStorage2
             currentVoxels = _voxelStorage1
         }
-        var newActives: Set<VoxelIndex> = []
 
         switch rule.scope {
         case .active:
-            for i in activeVoxels {
+            for i in _actives {
                 guard var temp = currentVoxels[i] else { continue }
                 let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
-                    newActives.insert(i)
+                    newActives.append(i)
                     newVoxels[i] = temp
                 }
                 if let diagnostic = result.diagnostic {
@@ -97,13 +95,13 @@ public final class CASimulationEngine<T: Sendable> {
                         CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
-            activeVoxels = newActives
+            _actives = newActives
         case .all:
             for i in currentVoxels.bounds {
                 guard var temp = currentVoxels[i] else { continue }
                 let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
-                    newActives.insert(i)
+                    newActives.append(i)
                     newVoxels[i] = temp
                 }
                 if let diagnostic = result.diagnostic {
@@ -111,7 +109,7 @@ public final class CASimulationEngine<T: Sendable> {
                         CADiagnostic(index: i, rule: rule.name, messages: diagnostic.messages))
                 }
             }
-            activeVoxels = newActives
+            _actives = newActives
         }
 
         if activeStorage {
@@ -132,6 +130,7 @@ public final class CASimulationEngine<T: Sendable> {
 
         var newVoxels: VoxelArray<T>
         let currentVoxels: VoxelArray<T>
+        var newActives: [VoxelIndex] = []
         if activeStorage {
             newVoxels = _voxelStorage1
             currentVoxels = _voxelStorage2
@@ -139,15 +138,14 @@ public final class CASimulationEngine<T: Sendable> {
             newVoxels = _voxelStorage2
             currentVoxels = _voxelStorage1
         }
-        var newActives: Set<VoxelIndex> = []
 
         switch rule.scope {
         case .active:
-            for i in activeVoxels {
+            for i in _actives {
                 guard var temp = currentVoxels[i] else { continue }
                 let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
-                    newActives.insert(i)
+                    newActives.append(i)
                     newVoxels[i] = temp
                     diagnostics.append(
                         CADetailedDiagnostic(index: i, rule: rule.name, initialValue: currentVoxels[i], finalValue: newVoxels[i], messages: result.diagnostic?.messages ?? [])
@@ -158,13 +156,13 @@ public final class CASimulationEngine<T: Sendable> {
                     )
                 }
             }
-            activeVoxels = newActives
+            _actives = newActives
         case .all:
             for i in currentVoxels.bounds {
                 guard var temp = currentVoxels[i] else { continue }
                 let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
-                    newActives.insert(i)
+                    newActives.append(i)
                     newVoxels[i] = temp
                     diagnostics.append(
                         CADetailedDiagnostic(index: i, rule: rule.name, initialValue: currentVoxels[i], finalValue: newVoxels[i], messages: result.diagnostic?.messages ?? [])
@@ -175,7 +173,7 @@ public final class CASimulationEngine<T: Sendable> {
                     )
                 }
             }
-            activeVoxels = newActives
+            _actives = newActives
         }
 
         if activeStorage {

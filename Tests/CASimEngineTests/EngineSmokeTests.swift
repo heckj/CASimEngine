@@ -12,14 +12,12 @@ final class EngineSmokeTests: XCTestCase {
 
         XCTAssertEqual(seed.bounds.indices.count, 100 * 100 * 100)
 
-        // let rule = DirectNoEffectRule<Int>()
-
         let engine = CASimulationEngine(seed, rules: [IncrementAllRule()])
 
-        XCTAssertEqual(engine.activeVoxels.count, 100 * 100 * 100)
+        XCTAssertEqual(engine._actives.count, 100 * 100 * 100)
 
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
-        XCTAssertEqual(engine.activeVoxels.count, 1_000_000)
+        XCTAssertEqual(engine._actives.count, 1_000_000)
 
         measure {
             engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))

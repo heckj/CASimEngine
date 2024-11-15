@@ -8,7 +8,7 @@ final class EngineFunctionalTests: XCTestCase {
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         XCTAssertEqual(seed.bounds.indices.count, 10 * 10 * 10)
         let engine = CASimulationEngine(seed, rules: [])
-        XCTAssertEqual(engine.activeVoxels.count, 10 * 10 * 10)
+        XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
     }
 
     func testActiveScope() throws {
@@ -16,10 +16,10 @@ final class EngineFunctionalTests: XCTestCase {
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(seed, rules: [IncrementActiveRule()])
 
-        XCTAssertEqual(engine.activeVoxels.count, 10 * 10 * 10)
+        XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
 
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
-        XCTAssertEqual(engine.activeVoxels.count, 1000)
+        XCTAssertEqual(engine._actives.count, 1000)
     }
 
     func testActiveScopeNoEffect() throws {
@@ -27,10 +27,10 @@ final class EngineFunctionalTests: XCTestCase {
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(seed, rules: [NoEffectRule()])
 
-        XCTAssertEqual(engine.activeVoxels.count, 10 * 10 * 10)
+        XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
 
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
-        XCTAssertEqual(engine.activeVoxels.count, 0)
+        XCTAssertEqual(engine._actives.count, 0)
     }
 
     func testAllScope() throws {
@@ -38,8 +38,8 @@ final class EngineFunctionalTests: XCTestCase {
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(seed, rules: [IncrementAllRule()])
 
-        XCTAssertEqual(engine.activeVoxels.count, 10 * 10 * 10)
+        XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
-        XCTAssertEqual(engine.activeVoxels.count, 10 * 10 * 10)
+        XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
     }
 }
