@@ -88,7 +88,7 @@ public final class CASimulationEngine<T: Sendable> {
                 let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.append(i)
-                    newVoxels[i] = temp
+                    newVoxels.set(i, newValue: temp)
                 }
                 if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
@@ -102,7 +102,7 @@ public final class CASimulationEngine<T: Sendable> {
                 let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
                 if result.updatedVoxel {
                     newActives.append(i)
-                    newVoxels[i] = temp
+                    newVoxels.set(i, newValue: temp)
                 }
                 if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
