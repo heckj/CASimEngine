@@ -1,9 +1,8 @@
 public import Voxels
 
-// #if canImport(os)
-import os
-
-// #endif
+#if canImport(os)
+    import os
+#endif
 
 let subsystem = "CASimulation"
 
@@ -16,10 +15,10 @@ let subsystem = "CASimulation"
 ///
 /// To test a rule against a collection of voxels, use ``diagnosticEvaluate(deltaTime:rule:)`` which returns a list of ``CADetailedDiagnostic`` for each voxel updated during its evaluation.
 public final class CASimulationEngine<T: Sendable> {
-    // #if canImport(os)
-    let logger: Logger = .init(subsystem: subsystem, category: "Persistence")
-    let signposter: OSSignposter
-    // #endif
+    #if canImport(os)
+        let logger: Logger = .init(subsystem: subsystem, category: "Persistence")
+        let signposter: OSSignposter
+    #endif
 
     // flip-flop writing in the voxel storage collections
     // as the CA simulation progresses. This keeps allocations
@@ -44,9 +43,9 @@ public final class CASimulationEngine<T: Sendable> {
     let _diagnosticContinuation: AsyncStream<CADiagnostic>.Continuation
 
     public init(_ seed: any VoxelAccessible<T>, rules: [any CASimulationRule<T>]) {
-        // #if canImport(os)
-        signposter = OSSignposter(logger: logger)
-        // #endif
+        #if canImport(os)
+            signposter = OSSignposter(logger: logger)
+        #endif
 
         guard let firstValueFound = seed.first else {
             fatalError("No values found in voxel collection")
@@ -74,19 +73,19 @@ public final class CASimulationEngine<T: Sendable> {
     /// Diagnostics from the rule, if any, are emitted to ``diagnosticStream``.
     /// - Parameter deltaTime: The time step to use for the rule evaluation.
     public func tick(deltaTime: Duration) {
-//        #if canImport(os)
-        let signpostId = signposter.makeSignpostID()
-        let state = signposter.beginInterval("tick", id: signpostId)
-//        #endif
+        #if canImport(os)
+            let signpostId = signposter.makeSignpostID()
+            let state = signposter.beginInterval("tick", id: signpostId)
+        #endif
         for r in rules {
             evaluate(deltaTime: deltaTime, rule: r)
-//            #if canImport(os)
-            signposter.emitEvent("rule", id: signpostId, "\(r.name)")
-//            #endif
+            #if canImport(os)
+                signposter.emitEvent("rule", id: signpostId, "\(r.name)")
+            #endif
         }
-//        #if canImport(os)
-        signposter.endInterval("tick", state)
-//        #endif
+        #if canImport(os)
+            signposter.endInterval("tick", state)
+        #endif
     }
 
     /// Run a rule against the collection of voxels, updating the simulation.
@@ -96,10 +95,10 @@ public final class CASimulationEngine<T: Sendable> {
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
     func evaluate(deltaTime: Duration, rule: some CASimulationRule<T>) {
-//        #if canImport(os)
-        let signpostId = signposter.makeSignpostID()
-        let state = signposter.beginInterval("tick.evaluate", id: signpostId)
-//        #endif
+        #if canImport(os)
+            let signpostId = signposter.makeSignpostID()
+            let state = signposter.beginInterval("tick.evaluate", id: signpostId)
+        #endif
         var newVoxels: VoxelArray<T>
         let currentVoxels: VoxelArray<T>
         var newActives: [VoxelIndex] = []
@@ -148,9 +147,9 @@ public final class CASimulationEngine<T: Sendable> {
             _voxelStorage2 = newVoxels
         }
         activeStorage.toggle()
-//        #if canImport(os)
-        signposter.endInterval("tick.evaluate", state)
-//        #endif
+        #if canImport(os)
+            signposter.endInterval("tick.evaluate", state)
+        #endif
     }
 
     /// Run a rule against the collection of voxels, updating the simulation and collecting diagnostics as it processes.
