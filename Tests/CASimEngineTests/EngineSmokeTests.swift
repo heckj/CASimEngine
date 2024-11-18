@@ -22,7 +22,7 @@ final class EngineSmokeTests: XCTestCase {
         measure {
             engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         }
-        // standard test time: loosely 1.013 seconds (debug build)
-        // in profiling, it's showing ~313ms per iteration (release build)
+        // standard test time: loosely 0.518 seconds (debug build)
+        // in profiling, it's showing ~112ms per iteration (release build)
     }
 }
