@@ -4,8 +4,6 @@ public import Voxels
     import os
 #endif
 
-let subsystem = "CASimulation"
-
 /// A cellular automata simulation engine.
 ///
 /// Initialize the engine with a collection of voxels and rules that operate on those voxels.
@@ -16,7 +14,6 @@ let subsystem = "CASimulation"
 /// To test a rule against a collection of voxels, use ``diagnosticEvaluate(deltaTime:rule:)`` which returns a list of ``CADetailedDiagnostic`` for each voxel updated during its evaluation.
 public final class CASimulationEngine<T: Sendable> {
     #if canImport(os)
-        let logger: Logger = .init(subsystem: subsystem, category: "Persistence")
         let signposter: OSSignposter
     #endif
 
@@ -44,7 +41,7 @@ public final class CASimulationEngine<T: Sendable> {
 
     public init(_ seed: any VoxelAccessible<T>, rules: [any CASimulationRule<T>]) {
         #if canImport(os)
-            signposter = OSSignposter(logger: logger)
+            signposter = OSSignposter(subsystem: "Engine", category: .pointsOfInterest)
         #endif
 
         guard let firstValueFound = seed.first else {
