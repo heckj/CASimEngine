@@ -15,8 +15,8 @@ final class EngineFunctionalTests: XCTestCase {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(9, 9, 9))
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
-            .eval(name: "inc", scope: .active, IncrementSingleInt())
-            ])
+            .eval(name: "inc", scope: .active, IncrementSingleInt()),
+        ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
 
@@ -28,7 +28,7 @@ final class EngineFunctionalTests: XCTestCase {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(9, 9, 9))
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
-            .eval(name: "noop", scope: .active, NoEffect())
+            .eval(name: "noop", scope: .active, NoEffect()),
         ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
@@ -42,7 +42,7 @@ final class EngineFunctionalTests: XCTestCase {
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(SingleIntStorage(seed),
                                         rules: [
-                                            .eval(name: "inc", scope: .all, IncrementSingleInt())
+                                            .eval(name: "inc", scope: .all, IncrementSingleInt()),
                                         ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)

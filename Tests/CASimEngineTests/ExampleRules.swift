@@ -3,20 +3,19 @@ internal import Voxels
 
 struct SingleIntStorage: StorageProtocol {
     let bounds: VoxelBounds
-    
-    var floatValue: Array<Int> = []
+
+    var floatValue: [Int] = []
 
     init(_ voxels: VoxelArray<Int>) {
         bounds = voxels.bounds
-        for i in 0..<bounds.size {
-            //let voxelIndex = bounds._unchecked_delinearize(i)
+        for i in 0 ..< bounds.size {
+            // let voxelIndex = bounds._unchecked_delinearize(i)
             floatValue.append(voxels[i])
         }
-                
     }
-    
+
     func changes() -> [VoxelUpdate<T>] {
-        return []
+        []
     }
 }
 
@@ -25,36 +24,35 @@ struct IncrementSingleInt: EvaluateStep {
     func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // need read access to storage0 and write access to storage1
         storage1.floatValue[linearIndex] = storage0.floatValue[linearIndex] + 1
-        
+
         // computing the voxelIndex from the linear index
-        //let _ = storage0.bounds._unchecked_delinearize(linearIndex)
+        // let _ = storage0.bounds._unchecked_delinearize(linearIndex)
         return .indexUpdated
     }
 }
 
 struct NoEffect: EvaluateStep {
     typealias StorageType = SingleIntStorage
-    func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
-        return .noUpdate
+    func evaluate(linearIndex _: Int, storage0 _: StorageType, storage1 _: inout StorageType) -> CARuleResult {
+        .noUpdate
     }
 }
 
 struct SingleFloatStorage: StorageProtocol {
     let bounds: VoxelBounds
-    
-    var floatValue: Array<Float> = []
+
+    var floatValue: [Float] = []
 
     init(_ voxels: VoxelArray<Float>) {
         bounds = voxels.bounds
-        for i in 0..<bounds.size {
-            //let voxelIndex = bounds._unchecked_delinearize(i)
+        for i in 0 ..< bounds.size {
+            // let voxelIndex = bounds._unchecked_delinearize(i)
             floatValue.append(voxels[i])
         }
-                
     }
-    
+
     func changes() -> [VoxelUpdate<T>] {
-        return []
+        []
     }
 }
 
@@ -63,28 +61,27 @@ struct IncrementSingleFloat: EvaluateStep {
     func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // need read access to storage0 and write access to storage1
         storage1.floatValue[linearIndex] = storage0.floatValue[linearIndex] + Float(1)
-        
+
         // computing the voxelIndex from the linear index
-        //let _ = storage0.bounds._unchecked_delinearize(linearIndex)
+        // let _ = storage0.bounds._unchecked_delinearize(linearIndex)
         return .indexUpdated
     }
 }
 
-
 struct FluidSimStorage: StorageProtocol {
     let bounds: VoxelBounds
-    
-    var solid: Array<Float> = []
-    var fluidMass: Array<Float> = []
-    var fluidVelX: Array<Float> = []
-    var fluidVelY: Array<Float> = []
-    var fluidVelZ: Array<Float> = []
-    var fluidPressure: Array<Float> = []
-    
+
+    var solid: [Float] = []
+    var fluidMass: [Float] = []
+    var fluidVelX: [Float] = []
+    var fluidVelY: [Float] = []
+    var fluidVelZ: [Float] = []
+    var fluidPressure: [Float] = []
+
     init(_ voxels: VoxelArray<MultiResourceCell>) {
         bounds = voxels.bounds
-        for i in 0..<bounds.size {
-            //let voxelIndex = bounds._unchecked_delinearize(i)
+        for i in 0 ..< bounds.size {
+            // let voxelIndex = bounds._unchecked_delinearize(i)
             solid.append(voxels[i].primaryTypeVolume)
             fluidMass.append(voxels[i].liquidVolume)
             fluidVelX.append(voxels[i].flowX)
@@ -92,11 +89,10 @@ struct FluidSimStorage: StorageProtocol {
             fluidVelZ.append(voxels[i].flowZ)
             fluidPressure.append(voxels[i].pressure)
         }
-                
     }
-    
+
     func changes() -> [VoxelUpdate<T>] {
-        return []
+        []
     }
 }
 
@@ -105,16 +101,16 @@ struct IncrementVelY: EvaluateStep {
     func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // need read access to storage0 and write access to storage1
         storage1.fluidVelY[linearIndex] = storage0.fluidVelY[linearIndex] + Float(1)
-        
+
         // computing the voxelIndex from the linear index
         let _ = storage0.bounds._unchecked_delinearize(linearIndex)
         return .indexUpdated
     }
 }
 
-//internal import Voxels
+// internal import Voxels
 //
-//struct NoEffectRule<T: Sendable>: CASimulationRule {
+// struct NoEffectRule<T: Sendable>: CASimulationRule {
 //    public typealias VoxelType = T
 //
 //    public let name: String = "NoEffect"
@@ -124,9 +120,9 @@ struct IncrementVelY: EvaluateStep {
 //        // all actives go inactive
 //        .noUpdate
 //    }
-//}
+// }
 //
-//struct UpdateNoChangeRule<T: Sendable>: CASimulationRule {
+// struct UpdateNoChangeRule<T: Sendable>: CASimulationRule {
 //    public typealias VoxelType = T
 //
 //    public let name: String = "UpdateNoChange"
@@ -139,9 +135,9 @@ struct IncrementVelY: EvaluateStep {
 //        newVoxel = readVoxels[index] ?? newVoxel
 //        return .indexUpdated
 //    }
-//}
+// }
 //
-//struct IncrementAllRule: CASimulationRule {
+// struct IncrementAllRule: CASimulationRule {
 //    public typealias VoxelType = Int
 //
 //    public let name: String = "IncrementAll"
@@ -152,9 +148,9 @@ struct IncrementVelY: EvaluateStep {
 //        newVoxel = (readVoxels[index] ?? 0) + 1
 //        return .indexUpdated
 //    }
-//}
+// }
 //
-//struct IncrementActiveRule: CASimulationRule {
+// struct IncrementActiveRule: CASimulationRule {
 //    public typealias VoxelType = Int
 //
 //    public let name: String = "IncrementActive"
@@ -165,4 +161,4 @@ struct IncrementVelY: EvaluateStep {
 //        newVoxel = (readVoxels[index] ?? 0) + 1
 //        return .indexUpdated
 //    }
-//}
+// }

@@ -20,7 +20,7 @@ public final class CASimulationEngine<T: StorageProtocol> {
     // arrays of structs (instead of struct of arrays, would could be VoxelArray<T>)
     var storage0: T
     var storage1: T
-    
+
     var _actives: [VoxelIndex] = []
 
     let bounds: VoxelBounds
@@ -60,12 +60,12 @@ public final class CASimulationEngine<T: StorageProtocol> {
         #endif
         for r in rules {
             switch r {
-            case .swap(let name, let swapStep):
+            case let .swap(name, swapStep):
                 swapStep.perform(storage0: &storage0, storage1: &storage1)
                 #if canImport(os)
                     signposter.emitEvent("swap", id: signpostId, "\(name)")
                 #endif
-            case .eval(let name, let scope, let evaluateStep):
+            case let .eval(name, scope, evaluateStep):
                 evaluate(deltaTime: deltaTime, scope: scope, stepName: name, step: evaluateStep)
                 #if canImport(os)
                     signposter.emitEvent("eval", id: signpostId, "\(name)")
@@ -83,7 +83,7 @@ public final class CASimulationEngine<T: StorageProtocol> {
     /// - Parameters:
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
-    func evaluate(deltaTime: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) {
+    func evaluate(deltaTime _: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) {
         #if canImport(os)
             let signpostId = signposter.makeSignpostID()
             let state = signposter.beginInterval("tick.evaluate", id: signpostId)
@@ -106,7 +106,7 @@ public final class CASimulationEngine<T: StorageProtocol> {
             }
             _actives = newActives
         case .all:
-            for i in 0..<bounds.size {
+            for i in 0 ..< bounds.size {
                 // guard var temp = currentVoxels[i] else { continue }
                 let result = step.evaluate(linearIndex: i, storage0: storage0, storage1: &storage1)
                 let voxelIndex = bounds._unchecked_delinearize(i)

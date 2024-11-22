@@ -25,7 +25,7 @@ public struct MultiResourceCell: Sendable, Hashable {
     public var porousFlowX: Float = 0
     public var porousFlowY: Float = 0
     public var porousFlowZ: Float = 0
-    
+
     public init(resource: UInt8, unitFill: Float = 1.0, temp: Float = 20) {
         primaryType = resource
         primaryTypeVolume = unitFill
@@ -39,7 +39,6 @@ public struct MultiResourceCell: Sendable, Hashable {
 
 extension MultiResourceCell {
     func isStatic() -> Bool {
-        
         // if the static volume is > 90% of the voxel, consider it static
         staticVolume() > 0.9
     }

@@ -9,36 +9,36 @@ extension PhaseState: Sendable, Hashable, Codable {}
 public struct Resource: Sendable, Hashable, Identifiable, Codable, CaseIterable {
     public let name: String
     public let id: UInt8
-    
+
     public let meltingPoint: Float // °c
     public let boilingPoint: Float // °c
     public let porosity: Float // Unit value - 0...1 (%)
-                        // let adhesionBreakpoint: UInt8
-    
+    // let adhesionBreakpoint: UInt8
+
     public let solidDensity: Float // (g/cc)
-                            // let solidFlowRate: Float
-    
+    // let solidFlowRate: Float
+
     public let liquidDensity: Float // (g/cc)
-                             // let liquidFlowRate: Float
-    
+    // let liquidFlowRate: Float
+
     public let gasDensity: Float // (g/cc)
-                          // let gasFlowRate: Float
-    
+    // let gasFlowRate: Float
+
     public init(id: UInt8, name: String, meltingPoint: Float, boilingPoint: Float, solidDensity: Float, liquidDensity: Float, gasDensity: Float, solidPorosity: Float) {
         self.id = id
         self.name = name
-        
+
         self.meltingPoint = meltingPoint
         self.boilingPoint = boilingPoint
-        
+
         self.solidDensity = solidDensity
         self.liquidDensity = liquidDensity
         self.gasDensity = gasDensity
-        
-        self.porosity = solidPorosity
+
+        porosity = solidPorosity
         // self.heatDiffusivity = heatDiffusivity
     }
-    
+
     @inlinable
     public func state(_ temp: Float) -> PhaseState {
         if temp < meltingPoint {
@@ -49,7 +49,7 @@ public struct Resource: Sendable, Hashable, Identifiable, Codable, CaseIterable 
             .liquid
         }
     }
-    
+
     @inlinable
     public func densityAtTemp(_ temp: Float) -> Float {
         if temp < meltingPoint {
@@ -60,7 +60,7 @@ public struct Resource: Sendable, Hashable, Identifiable, Codable, CaseIterable 
             liquidDensity
         }
     }
-    
+
     /// mass of the resource
     /// - Parameters:
     ///   - unitVolume: unit float value of a 1m3 volume
@@ -74,4 +74,3 @@ public struct Resource: Sendable, Hashable, Identifiable, Codable, CaseIterable 
         return density * 1000.0 * unitVolume
     }
 }
-
