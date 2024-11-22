@@ -2,11 +2,12 @@ internal import CASimEngine
 internal import Voxels
 
 struct SingleIntStorage: StorageProtocol {
+    public typealias T = Int
     let bounds: VoxelBounds
 
-    var floatValue: [Int] = []
+    var floatValue: [T] = []
 
-    init(_ voxels: VoxelArray<Int>) {
+    init(_ voxels: VoxelArray<T>) {
         bounds = voxels.bounds
         for i in 0 ..< bounds.size {
             // let voxelIndex = bounds._unchecked_delinearize(i)
@@ -39,11 +40,12 @@ struct NoEffect: EvaluateStep {
 }
 
 struct SingleFloatStorage: StorageProtocol {
+    public typealias T = Float
     let bounds: VoxelBounds
 
-    var floatValue: [Float] = []
+    var floatValue: [T] = []
 
-    init(_ voxels: VoxelArray<Float>) {
+    init(_ voxels: VoxelArray<T>) {
         bounds = voxels.bounds
         for i in 0 ..< bounds.size {
             // let voxelIndex = bounds._unchecked_delinearize(i)
