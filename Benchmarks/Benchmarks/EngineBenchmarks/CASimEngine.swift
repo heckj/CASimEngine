@@ -14,7 +14,9 @@ let benchmarks = {
             seed[idx] = 1
         }
 
-        let engine = CASimulationEngine(seed, rules: [IncrementRule()])
+        let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
+            .eval(name: "inc", scope: .all, IncrementSingleInt())
+        ])
 
         for _ in benchmark.scaledIterations {
             benchmark.startMeasurement()

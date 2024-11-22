@@ -1,15 +1,29 @@
 import CASimEngine
 import Voxels
 
-struct IncrementRule: CASimulationRule {
-    public typealias VoxelType = Int
+struct SingleIntStorage: StorageProtocol {
+    let bounds: VoxelBounds
+    
+    var floatValue: Array<Int> = []
 
-    public let name: String = "NoEffectKeepActive"
-    public let scope: CARuleScope = .all
+    init(_ voxels: VoxelArray<Int>) {
+        bounds = voxels.bounds
+        for i in 0..<bounds.size {
+            //let voxelIndex = bounds._unchecked_delinearize(i)
+            floatValue.append(voxels[i])
+        }
+                
+    }
+    
+    func changes() -> [VoxelUpdate<T>] {
+        return []
+    }
+}
 
-    public func evaluate(index: Voxels.VoxelIndex, readVoxels: Voxels.VoxelArray<VoxelType>, newVoxel: inout VoxelType, deltaTime _: Duration) -> CARuleResult {
-        // all actives stay active
-        newVoxel = (readVoxels[index] ?? 0) + 1
+struct IncrementSingleInt: EvaluateStep {
+    typealias StorageType = SingleIntStorage
+    func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
+        storage1.floatValue[linearIndex] = storage0.floatValue[linearIndex] + 1
         return .indexUpdated
     }
 }
