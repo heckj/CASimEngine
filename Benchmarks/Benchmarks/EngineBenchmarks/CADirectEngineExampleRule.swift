@@ -20,6 +20,13 @@ struct SingleIntStorage: StorageProtocol {
     }
 }
 
+struct SwapInt: SwapStep {
+    typealias StorageType = SingleIntStorage
+    func perform(storage0: inout SingleIntStorage, storage1: inout SingleIntStorage) {
+        swap(&storage0.floatValue, &storage1.floatValue)
+    }
+}
+
 struct IncrementSingleInt: EvaluateStep {
     typealias StorageType = SingleIntStorage
     func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
