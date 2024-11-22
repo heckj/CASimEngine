@@ -15,7 +15,8 @@ let benchmarks = {
         }
 
         let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
-            .eval(name: "inc", scope: .all, IncrementSingleInt())
+            .eval(name: "inc", scope: .all, IncrementSingleInt()),
+            CASimulationRule.swap(name: "flip", SwapInt())
         ])
 
         for _ in benchmark.scaledIterations {
