@@ -7,14 +7,16 @@ final class EngineFunctionalTests: XCTestCase {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(9, 9, 9))
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         XCTAssertEqual(seed.bounds.indices.count, 10 * 10 * 10)
-        let engine = CASimulationEngine(seed, rules: [])
+        let engine = CASimulationEngine(SingleIntStorage(seed), rules: [])
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
     }
 
     func testActiveScope() throws {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(9, 9, 9))
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
-        let engine = CASimulationEngine(seed, rules: [IncrementActiveRule()])
+        let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
+            .eval(name: "inc", scope: .active, IncrementSingleInt())
+            ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
 
@@ -25,7 +27,9 @@ final class EngineFunctionalTests: XCTestCase {
     func testActiveScopeNoEffect() throws {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(9, 9, 9))
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
-        let engine = CASimulationEngine(seed, rules: [NoEffectRule()])
+        let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
+            .eval(name: "noop", scope: .active, NoEffect())
+        ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
 
@@ -36,7 +40,10 @@ final class EngineFunctionalTests: XCTestCase {
     func testAllScope() throws {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(9, 9, 9))
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
-        let engine = CASimulationEngine(seed, rules: [IncrementAllRule()])
+        let engine = CASimulationEngine(SingleIntStorage(seed),
+                                        rules: [
+                                            .eval(name: "inc", scope: .all, IncrementSingleInt())
+                                        ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
