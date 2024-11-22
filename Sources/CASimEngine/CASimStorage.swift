@@ -18,6 +18,7 @@ public protocol StorageProtocol<T> {
 // MARK: Example
 
 public struct FluidSimStorage: StorageProtocol {
+    public typealias T = MultiResourceCell
     public let bounds: VoxelBounds
 
     public var solid: [Float] = []
@@ -27,7 +28,7 @@ public struct FluidSimStorage: StorageProtocol {
     public var fluidVelZ: [Float] = []
     public var fluidPressure: [Float] = []
 
-    public init(_ voxels: VoxelArray<MultiResourceCell>) {
+    public init(_ voxels: VoxelArray<T>) {
         bounds = voxels.bounds
         for i in 0 ..< bounds.size {
             // let voxelIndex = bounds._unchecked_delinearize(i)
