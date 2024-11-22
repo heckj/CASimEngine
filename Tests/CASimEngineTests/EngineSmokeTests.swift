@@ -5,14 +5,14 @@ import XCTest // import Testing for 6.0...
 final class EngineSmokeTests: XCTestCase {
     func testSimplestRule() throws {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(99, 99, 99))
-        var seed = VoxelArray(bounds: bounds, initialValue: 0)
+        var seed = VoxelArray(bounds: bounds, initialValue: Float(0))
         for idx in bounds.y(0 ... 0).indices {
             seed[idx] = 1
         }
 
         XCTAssertEqual(seed.bounds.indices.count, 100 * 100 * 100)
 
-        let engine = CASimulationEngine(seed, rules: [IncrementAllRule()])
+        let engine = CASimulationEngine(SingleFloatStorage(seed), rules: [.eval(name: "increment", scope: .all, IncrementSingleFloat())])
 
         XCTAssertEqual(engine._actives.count, 100 * 100 * 100)
 
