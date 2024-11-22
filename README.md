@@ -20,3 +20,9 @@ Get a command-line operational with the version of swift you want. For example:
 docker run --rm --privileged --interactive --tty --volume "$(pwd):/src" --workdir "/src" swift:5.10
 ```
 
+Append on specific scripts or commands for run-and-done:
+
+```bash
+docker run --rm --privileged --interactive --tty --volume "$(pwd):/src" --workdir "/src" swift:5.9 ./scripts/docker-test.bash
+```
+
