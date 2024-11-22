@@ -14,22 +14,23 @@ public protocol StorageProtocol<T> {
 // storage<T>
 // -> storage
 // -> rules
+
 // MARK: Example
 
 public struct FluidSimStorage: StorageProtocol {
     public let bounds: VoxelBounds
-    
-    public var solid: Array<Float> = []
-    public var fluidMass: Array<Float> = []
-    public var fluidVelX: Array<Float> = []
-    public var fluidVelY: Array<Float> = []
-    public var fluidVelZ: Array<Float> = []
-    public var fluidPressure: Array<Float> = []
-    
+
+    public var solid: [Float] = []
+    public var fluidMass: [Float] = []
+    public var fluidVelX: [Float] = []
+    public var fluidVelY: [Float] = []
+    public var fluidVelZ: [Float] = []
+    public var fluidPressure: [Float] = []
+
     public init(_ voxels: VoxelArray<MultiResourceCell>) {
         bounds = voxels.bounds
-        for i in 0..<bounds.size {
-            //let voxelIndex = bounds._unchecked_delinearize(i)
+        for i in 0 ..< bounds.size {
+            // let voxelIndex = bounds._unchecked_delinearize(i)
             solid[i] = voxels[i].primaryTypeVolume
             fluidMass[i] = voxels[i].liquidVolume
             fluidVelX[i] = voxels[i].flowX
@@ -37,10 +38,9 @@ public struct FluidSimStorage: StorageProtocol {
             fluidVelZ[i] = voxels[i].flowZ
             fluidPressure[i] = voxels[i].pressure
         }
-                
     }
-    
+
     public func changes() -> [VoxelUpdate<T>] {
-        return []
+        []
     }
 }

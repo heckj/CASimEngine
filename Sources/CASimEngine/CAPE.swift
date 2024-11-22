@@ -1,4 +1,4 @@
-//import Voxels
+// import Voxels
 //
 //// Original implementation by William Van Der Scheer
 //// Master's Thesis, Utrecht University, 2022
@@ -14,21 +14,21 @@
 //
 //// MARK: CONSTANTS
 //
-//let PRESSURE_ITERATIONS = 8
-//let MIN_VOXELMASS = 0.001
-//let VELOCITY_DAMPENING: Float = 0.1
-//let AL: Float = 0.5 // advection limiter
-//let INVAL: Float = 1.0 / AL // inverted advection limiter
+// let PRESSURE_ITERATIONS = 8
+// let MIN_VOXELMASS = 0.001
+// let VELOCITY_DAMPENING: Float = 0.1
+// let AL: Float = 0.5 // advection limiter
+// let INVAL: Float = 1.0 / AL // inverted advection limiter
 //
-//let EVAPORATION: Float = 0.001 // The amount of mass to remove per cell per second (helps clean up low mass cells that are not visible.)
-//let MINRENDERMASS: Float = 0.001 // Don't render voxels below this much mass
-//let GRAVITYENABLED = 1
-//let CELLSIZE = 0.25 // In meters, essentially multiplier for gravity
+// let EVAPORATION: Float = 0.001 // The amount of mass to remove per cell per second (helps clean up low mass cells that are not visible.)
+// let MINRENDERMASS: Float = 0.001 // Don't render voxels below this much mass
+// let GRAVITYENABLED = 1
+// let CELLSIZE = 0.25 // In meters, essentially multiplier for gravity
 //// 0.333 is maximum 100% save speed, use up to 1.0 for less clamping
 //// and faster flowing water (less viscous), but requires that an appropriate
 //// time step is selected by the user, or simulation may blow up if local
 //// velocity becomes too high and negative mass is created
-//let MAXV = 1.0 // 0.33f
+// let MAXV = 1.0 // 0.33f
 //
 //// namespace Tmpl8
 //// {
@@ -630,7 +630,7 @@
 ////    brick_m[brick_addr] += nmat;
 //// }
 //
-//struct MaterialAdvection: CASimulationRule {
+// struct MaterialAdvection: CASimulationRule {
 //    public typealias VoxelType = MultiResourceVoxel
 //
 //    public let name: String = "MaterialAdvection"
@@ -701,7 +701,7 @@
 //        // newVoxel. = estimatedPressure
 //        return .indexUpdated
 //    }
-//}
+// }
 //
 //// MARK: SIM - STEP2
 //
@@ -875,7 +875,7 @@
 //// }
 //
 //// STEP4: Solve for pressure that prevents divergence
-//struct Pressure: CASimulationRule {
+// struct Pressure: CASimulationRule {
 //    public typealias VoxelType = MultiResourceVoxel
 //
 //    public let name: String = "SolvePressure"
@@ -898,7 +898,7 @@
 //        newVoxel.pressure = estimatedPressure
 //        return .indexUpdated
 //    }
-//}
+// }
 //
 //// MARK: SIM - STEP5
 //

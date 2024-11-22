@@ -3,20 +3,19 @@ import Voxels
 
 struct SingleIntStorage: StorageProtocol {
     let bounds: VoxelBounds
-    
-    var floatValue: Array<Int> = []
+
+    var floatValue: [Int] = []
 
     init(_ voxels: VoxelArray<Int>) {
         bounds = voxels.bounds
-        for i in 0..<bounds.size {
-            //let voxelIndex = bounds._unchecked_delinearize(i)
+        for i in 0 ..< bounds.size {
+            // let voxelIndex = bounds._unchecked_delinearize(i)
             floatValue.append(voxels[i])
         }
-                
     }
-    
+
     func changes() -> [VoxelUpdate<T>] {
-        return []
+        []
     }
 }
 
