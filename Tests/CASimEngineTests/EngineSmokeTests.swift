@@ -1,6 +1,6 @@
 @testable internal import CASimEngine
 internal import Voxels
-import XCTest // import Testing for 6.0...
+import XCTest
 
 final class EngineSmokeTests: XCTestCase {
     func testSimplestRule() throws {
@@ -26,9 +26,6 @@ final class EngineSmokeTests: XCTestCase {
             engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         }
         // standard test time: loosely 0.518 seconds (debug build)
-        // in profiling, it's showing ~112ms per iteration (release build)
-
-        // with the big ole reset to the code and storage, test time is: 0.436
-        // and in profiling, it's down to 75ms per iteration
+        // 0.427 - Xcode 16.2 beta 3
     }
 }

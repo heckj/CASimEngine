@@ -31,6 +31,10 @@ public final class CASimulationEngine<T: CASimulationStorage> {
     public let diagnosticStream: AsyncStream<CADiagnostic>
     let _diagnosticContinuation: AsyncStream<CADiagnostic>.Continuation
 
+    var current: VoxelArray<T.T> {
+        storage0.current
+    }
+
 //    public init(_ seed: any VoxelAccessible<T>, rules: [CASimulationRule<T>]) {
     public init(_ seed: T, rules: [CASimulationRule<T>]) {
         #if canImport(os)
@@ -72,6 +76,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
                 #endif
             }
         }
+        swap(&storage0, &storage1)
         #if canImport(os)
             signposter.endInterval("tick", state)
         #endif

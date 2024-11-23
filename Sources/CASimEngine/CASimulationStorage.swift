@@ -11,4 +11,7 @@ public protocol CASimulationStorage<T> {
     init(_ voxels: VoxelArray<T>)
     /// Returns a collection of VoxelUpdate the represent the changed values in the simulation.
     func changes() -> [VoxelUpdate<T>]
+
+    /// The state of the storage reassembled into a VoxelArray.
+    var current: VoxelArray<T> { get }
 }
