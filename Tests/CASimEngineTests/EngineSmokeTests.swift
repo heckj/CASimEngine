@@ -12,7 +12,10 @@ final class EngineSmokeTests: XCTestCase {
 
         XCTAssertEqual(seed.bounds.indices.count, 100 * 100 * 100)
 
-        let engine = CASimulationEngine(SingleFloatStorage(seed), rules: [.eval(name: "increment", scope: .all, IncrementSingleFloat())])
+        let engine = CASimulationEngine(SingleFloatStorage(seed), rules: [
+            .eval(name: "increment", scope: .all, IncrementSingleFloat()),
+            .swap(name: "swap", SwapSingleFloat()),
+        ])
 
         XCTAssertEqual(engine._actives.count, 100 * 100 * 100)
 

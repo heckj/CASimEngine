@@ -1,23 +1,9 @@
+public import CASimEngine
 public import Voxels
 
-#if canImport(os)
-    import os
-#endif
+// MARK: Example StorageProtocol
 
-public protocol StorageProtocol<T> {
-    associatedtype T: Sendable
-    var bounds: VoxelBounds { get }
-    init(_ voxels: VoxelArray<T>)
-    func changes() -> [VoxelUpdate<T>]
-}
-
-// storage<T>
-// -> storage
-// -> rules
-
-// MARK: Example
-
-public struct FluidSimStorage: StorageProtocol {
+public struct FluidSimStorage: CASimulationStorage {
     public typealias T = MultiResourceCell
     public let bounds: VoxelBounds
 

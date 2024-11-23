@@ -12,7 +12,7 @@ internal import Voxels
 /// During operation, the engine runs the rules in the order that you provide them when creating the engine.
 ///
 /// To test a rule against a collection of voxels, use ``diagnosticEvaluate(deltaTime:rule:)`` which returns a list of ``CADetailedDiagnostic`` for each voxel updated during its evaluation.
-public final class CASimulationEngine<T: StorageProtocol> {
+public final class CASimulationEngine<T: CASimulationStorage> {
     #if canImport(os)
         let signposter: OSSignposter
     #endif

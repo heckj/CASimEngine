@@ -1,64 +1,31 @@
-// public import Voxels
-//
-///// A type that processes voxels within a cellular automata simulation.
-// public protocol CASimulationRule: Sendable {
-//    associatedtype T
-//    /// The name of the rule
-//    var name: String { get }
-//    /// The set of voxels to process.
-//    var scope: CARuleScope { get }
-//
-//    /// The function that the simulation engine calls to process a voxel.
-//    /// - Parameters:
-//    ///   - index: The index of the voxel within the simulation.
-//    ///   - readVoxels: The set of voxels that hold the current state.
-//    ///   - newVoxel: The voxel to update.
-//    ///   - deltaTime: The change in time in the simulation.
-//    /// - Returns: A result that indicates if the evaluation changed a voxel, and optionally diagnostic messages from this rule.
-//    func evaluate(index: VoxelIndex, readVoxels: Storage<T>, newVoxel: inout Storage<T>, deltaTime: Duration) -> CARuleResult
-// }
-
-public enum CASimulationRule<StorageType: StorageProtocol> {
+/// A cellular automata simulation rule.
+public enum CASimulationRule<StorageType: CASimulationStorage> {
+    /// A rule that swaps two storage values.
     case swap(name: String, any SwapStep<StorageType>)
+    /// A rule that evaluates cells.
     case eval(name: String, scope: CARuleScope, any EvaluateStep<StorageType>)
 }
 
+/// A type that provides the logic to swap storage values.
 public protocol SwapStep<StorageType> {
-    associatedtype StorageType: StorageProtocol
+    /// The type that conforms to StorageProtocol that this rule applies to.
+    associatedtype StorageType: CASimulationStorage
+    /// The function that the simulation engine calls to swap some properties within the engine's storage.
+    /// - Parameters:
+    ///   - storage0: The first storage instance.
+    ///   - storage1: The second storage instance.
     func perform(storage0: inout StorageType, storage1: inout StorageType)
 }
 
+/// A type that provides the logic to evaluate cells.
 public protocol EvaluateStep<StorageType> {
-    associatedtype StorageType: StorageProtocol
+    /// The type that conforms to StorageProtocol that this rule applies to.
+    associatedtype StorageType: CASimulationStorage
+    /// The function that the simulation engine calls to process a cell.
+    /// - Parameters:
+    ///   - linearIndex: The linear index of the cell to process.
+    ///   - storage0: The first storage engine.
+    ///   - storage1: The second storage engine.
+    /// - Returns: a simulation result indicator with optional diagnostic messages.
     func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult
 }
-
-// MARK: example steps
-
-struct SwapFluidMass: SwapStep {
-    typealias StorageType = FluidSimStorage
-    func perform(storage0: inout StorageType, storage1: inout StorageType) {
-        // need access to storage0 and storage1
-        swap(&storage0.fluidMass, &storage1.fluidMass)
-    }
-}
-
-struct IncrementVelY: EvaluateStep {
-    typealias StorageType = FluidSimStorage
-    func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
-        // need read access to storage0 and write access to storage1
-        storage1.fluidVelY[linearIndex] = storage0.fluidVelY[linearIndex] + Float(1)
-
-        // computing the voxelIndex from the linear index
-        let _ = storage0.bounds._unchecked_delinearize(linearIndex)
-        return .indexUpdated
-    }
-}
-
-// struct IncrementVelYVoxel {
-//    func evaluate(index: VoxelIndex, storage0: Storage, storage1: inout Storage) {
-//        // need read access to storage0 and write access to storage1
-//        let linearIndex = storage0.bounds._unchecked_linearize(index)
-//        storage1.fluidVelY[linearIndex] = storage0.fluidVelY[linearIndex] + Float(1)
-//    }
-// }

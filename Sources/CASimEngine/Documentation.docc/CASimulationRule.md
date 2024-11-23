@@ -2,12 +2,10 @@
 
 ## Topics
 
-### Inspecting a Rule
+### Defining Simulation Rules
 
-- ``name``
-- ``scope``
-- ``VoxelType``
+- ``CASimulationRule/eval(name:scope:_:)``
+- ``EvaluateStep``
 
-### Applying the rule
-
-- ``evaluate(index:readVoxels:newVoxel:deltaTime:)``
+- ``CASimulationRule/swap(name:_:)``
+- ``SwapStep``
