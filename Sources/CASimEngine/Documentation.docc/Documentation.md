@@ -14,6 +14,7 @@ Call ``CASimulationEngine/tick(deltaTime:)`` to increment the simulation.
 ### Creating a Simulation Engine
 
 - ``CASimulationEngine``
+- ``CASimulationStorage``
 
 ### Writing Simulation Rules
 

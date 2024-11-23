@@ -16,6 +16,7 @@ final class EngineFunctionalTests: XCTestCase {
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
             .eval(name: "inc", scope: .active, IncrementSingleInt()),
+            .swap(name: "swap", SwapSingleInt()),
         ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
@@ -29,6 +30,7 @@ final class EngineFunctionalTests: XCTestCase {
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
         let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
             .eval(name: "noop", scope: .active, NoEffect()),
+            .swap(name: "swap", SwapSingleInt()),
         ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
@@ -40,10 +42,10 @@ final class EngineFunctionalTests: XCTestCase {
     func testAllScope() throws {
         let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(9, 9, 9))
         let seed = VoxelArray(bounds: bounds, initialValue: 0)
-        let engine = CASimulationEngine(SingleIntStorage(seed),
-                                        rules: [
-                                            .eval(name: "inc", scope: .all, IncrementSingleInt()),
-                                        ])
+        let engine = CASimulationEngine(SingleIntStorage(seed), rules: [
+            .eval(name: "inc", scope: .all, IncrementSingleInt()),
+            .swap(name: "swap", SwapSingleInt()),
+        ])
 
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
