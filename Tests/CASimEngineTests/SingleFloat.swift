@@ -18,6 +18,14 @@ struct SingleFloatStorage: CASimulationStorage {
     func changes() -> [VoxelUpdate<T>] {
         []
     }
+
+    public var current: VoxelArray<T> {
+        var newArray = VoxelArray<T>(bounds: bounds, initialValue: 0)
+        for i in 0 ..< bounds.size {
+            newArray[i] = floatValue[i]
+        }
+        return newArray
+    }
 }
 
 struct IncrementSingleFloat: EvaluateStep {
