@@ -9,6 +9,7 @@ final class EngineFunctionalTests: XCTestCase {
         XCTAssertEqual(seed.bounds.indices.count, 10 * 10 * 10)
         let engine = CASimulationEngine(SingleIntStorage(seed), rules: [])
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
+        XCTAssertEqual(engine.current[VoxelIndex(0, 0, 0)], 0)
     }
 
     func testActiveScope() throws {
@@ -22,6 +23,7 @@ final class EngineFunctionalTests: XCTestCase {
 
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         XCTAssertEqual(engine._actives.count, 1000)
+        XCTAssertEqual(engine.current[VoxelIndex(0, 0, 0)], 1)
     }
 
     func testActiveScopeNoEffect() throws {
@@ -35,6 +37,7 @@ final class EngineFunctionalTests: XCTestCase {
 
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         XCTAssertEqual(engine._actives.count, 0)
+        XCTAssertEqual(engine.current[VoxelIndex(0, 0, 0)], 0)
     }
 
     func testAllScope() throws {
@@ -47,6 +50,7 @@ final class EngineFunctionalTests: XCTestCase {
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         XCTAssertEqual(engine._actives.count, 10 * 10 * 10)
+        XCTAssertEqual(engine.current[VoxelIndex(0, 0, 0)], 1)
     }
 
     func testCurrentValue() throws {
@@ -58,13 +62,9 @@ final class EngineFunctionalTests: XCTestCase {
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
 
-        let expected = VoxelArray(bounds: bounds, initialValue: 2)
-        // XCTAssertEqual(engine.current, expected)
+        XCTAssertEqual(engine.current[VoxelIndex(0, 0, 0)], 2)
 
-        // workaround for now...
-        let current = engine.current
-        for i in bounds {
-            XCTAssertEqual(current[i], expected[i])
-        }
+        let expected = VoxelArray(bounds: bounds, initialValue: 2)
+        XCTAssertEqual(engine.current, expected)
     }
 }

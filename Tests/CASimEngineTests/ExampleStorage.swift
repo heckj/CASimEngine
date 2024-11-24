@@ -6,6 +6,7 @@ public import Voxels
 public struct FluidSimStorage: CASimulationStorage {
     public typealias T = MultiResourceCell
     public let bounds: VoxelBounds
+    public let uninitializedDefault = MultiResourceCell.air
 
     public var solid: [Float] = []
     public var fluidMass: [Float] = []
@@ -14,6 +15,7 @@ public struct FluidSimStorage: CASimulationStorage {
     public var fluidVelZ: [Float] = []
     public var fluidPressure: [Float] = []
 
+    @inlinable
     public init(_ voxels: VoxelArray<T>) {
         bounds = voxels.bounds
         for i in 0 ..< bounds.size {
@@ -27,22 +29,24 @@ public struct FluidSimStorage: CASimulationStorage {
         }
     }
 
-    public func changes() -> [VoxelUpdate<T>] {
-        []
+    @inlinable
+    public func voxelAt(_ index: Int) -> MultiResourceCell {
+        var instance = MultiResourceCell.air
+        instance.primaryTypeVolume = solid[index]
+        instance.liquidVolume = fluidMass[index]
+        instance.flowX = fluidVelX[index]
+        instance.flowY = fluidVelY[index]
+        instance.flowZ = fluidVelZ[index]
+        instance.pressure = fluidPressure[index]
+        return instance
     }
 
+    @inlinable
     public var current: VoxelArray<T> {
         var newArray = VoxelArray<T>(bounds: bounds, initialValue: .air)
         for i in 0 ..< bounds.size {
             let voxelIndex = bounds._unchecked_delinearize(i)
-            var instance = MultiResourceCell.air
-            instance.primaryTypeVolume = solid[i]
-            instance.liquidVolume = fluidMass[i]
-            instance.flowX = fluidVelX[i]
-            instance.flowY = fluidVelY[i]
-            instance.flowZ = fluidVelZ[i]
-            instance.pressure = fluidPressure[i]
-            newArray[voxelIndex] = instance
+            newArray[voxelIndex] = voxelAt(i)
         }
         return newArray
     }

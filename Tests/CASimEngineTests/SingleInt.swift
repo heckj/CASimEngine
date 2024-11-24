@@ -4,9 +4,11 @@ internal import Voxels
 struct SingleIntStorage: CASimulationStorage {
     public typealias T = Int
     let bounds: VoxelBounds
+    public let uninitializedDefault = 0
 
     var intValue: [T] = []
 
+    @inlinable
     init(_ voxels: VoxelArray<T>) {
         bounds = voxels.bounds
         for i in 0 ..< bounds.size {
@@ -15,10 +17,12 @@ struct SingleIntStorage: CASimulationStorage {
         }
     }
 
-    func changes() -> [VoxelUpdate<T>] {
-        []
+    @inlinable
+    public func voxelAt(_ index: Int) -> Int {
+        intValue[index]
     }
 
+    @inlinable
     public var current: VoxelArray<T> {
         var newArray = VoxelArray<T>(bounds: bounds, initialValue: 0)
         for i in 0 ..< bounds.size {
