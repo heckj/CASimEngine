@@ -13,7 +13,7 @@ struct SwapFluidMass: SwapStep {
 
 struct IncrementVelY: EvaluateStep {
     typealias StorageType = FluidSimStorage
-    func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
+    func evaluate(linearIndex: Int, deltaTime _: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // need read access to storage0 and write access to storage1
         storage1.fluidVelY[linearIndex] = storage0.fluidVelY[linearIndex] + Float(1)
 

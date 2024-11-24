@@ -34,7 +34,7 @@ struct SingleIntStorage: CASimulationStorage {
 
 struct IncrementSingleInt: EvaluateStep {
     typealias StorageType = SingleIntStorage
-    func evaluate(linearIndex: Int, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
+    func evaluate(linearIndex: Int, deltaTime _: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // need read access to storage0 and write access to storage1
         storage1.intValue[linearIndex] = storage0.intValue[linearIndex] + 1
 
@@ -46,7 +46,7 @@ struct IncrementSingleInt: EvaluateStep {
 
 struct NoEffect: EvaluateStep {
     typealias StorageType = SingleIntStorage
-    func evaluate(linearIndex _: Int, storage0 _: StorageType, storage1 _: inout StorageType) -> CARuleResult {
+    func evaluate(linearIndex _: Int, deltaTime _: Duration, storage0 _: StorageType, storage1 _: inout StorageType) -> CARuleResult {
         .noUpdate
     }
 }

@@ -6,10 +6,14 @@ public import Voxels
 
 /// A cellular automata simulation engine.
 ///
-/// Initialize the engine with a collection of voxels and rules that operate on those voxels.
+/// The simulation engine (``CASimEngine``) processes the rules in the order you provide them on each iteration of ``CASimulationEngine/tick(deltaTime:)``.
 /// Call ``tick(deltaTime:)`` to increment the simulation, and read out the current state from the property ``current``, or a collection of the updated values from the function ``changes()``.
 ///
-/// During operation, the engine runs the rules in the order that you provide them when creating the engine.
+/// Initialize the engine with a storage container that conforms to ``CASimulationStorage``, that loads collection of voxels, and rules that operate on those voxels.
+///
+/// The engine maintains two copies of the storage type you provide to "ping-pong" updates while advancing the simulation.
+/// During the processing, the first storage buffer represents the current state of the simulation, and the second storage buffer is where you should write the updated state.
+/// At the end of the sequence of rules, the engine swaps the two storage buffers, incrementing the simulation.
 ///
 /// To test a rule against a collection of voxels, use ``diagnosticEvaluate(deltaTime:scope:stepName:step:)`` which returns a list of ``CADetailedDiagnostic`` for each voxel updated during its evaluation.
 public final class CASimulationEngine<T: CASimulationStorage> {
@@ -101,7 +105,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
     /// - Parameters:
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - rule: The cellular automata rule to process.
-    func evaluate(deltaTime _: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) {
+    func evaluate(deltaTime: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) {
         #if canImport(os)
             let signpostId = signposter.makeSignpostID()
             let state = signposter.beginInterval("tick.evaluate", id: signpostId)
@@ -113,7 +117,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
             for i in _actives {
                 let linearIndex: Int = bounds._unchecked_linearize(i)
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: linearIndex, storage0: storage0, storage1: &storage1)
+                let result = step.evaluate(linearIndex: linearIndex, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 if result.updatedVoxel {
                     newActives.append(i)
                     changed.insert(linearIndex)
@@ -127,7 +131,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
         case .all:
             for i in 0 ..< bounds.size {
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: i, storage0: storage0, storage1: &storage1)
+                let result = step.evaluate(linearIndex: i, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 let voxelIndex = bounds._unchecked_delinearize(i)
                 if result.updatedVoxel {
                     newActives.append(voxelIndex)
@@ -153,7 +157,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
     ///   - stepName: The name of the step.
     ///   - step: The step to evaluate.
     /// - Returns: A list of ``CADetailedDiagnostic``, one for each voxel updated.
-    @discardableResult public func diagnosticEvaluate(deltaTime _: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) -> [CADetailedDiagnostic<T.T>] {
+    @discardableResult public func diagnosticEvaluate(deltaTime: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) -> [CADetailedDiagnostic<T.T>] {
         var diagnostics: [CADetailedDiagnostic<T.T>] = []
         changed = Set<Int>(minimumCapacity: bounds.size)
 
@@ -162,7 +166,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
             for i in _actives {
                 let linearIndex: Int = bounds._unchecked_linearize(i)
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: linearIndex, storage0: storage0, storage1: &storage1)
+                let result = step.evaluate(linearIndex: linearIndex, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 if result.updatedVoxel {
                     changed.insert(linearIndex)
                     diagnostics.append(
@@ -178,7 +182,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
         case .all:
             for i in 0 ..< bounds.size {
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: i, storage0: storage0, storage1: &storage1)
+                let result = step.evaluate(linearIndex: i, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 let voxelIndex = bounds._unchecked_delinearize(i)
                 if result.updatedVoxel {
                     changed.insert(i)
