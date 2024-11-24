@@ -18,4 +18,4 @@
 
 ### Testing Rules
 
-- ``diagnosticEvaluate(deltaTime:rule:)``
+- ``diagnosticEvaluate(deltaTime:scope:stepName:step:)``
