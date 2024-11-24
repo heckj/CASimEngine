@@ -11,7 +11,7 @@ public import Voxels
 ///
 /// During operation, the engine runs the rules in the order that you provide them when creating the engine.
 ///
-/// To test a rule against a collection of voxels, use ``diagnosticEvaluate(deltaTime:rule:)`` which returns a list of ``CADetailedDiagnostic`` for each voxel updated during its evaluation.
+/// To test a rule against a collection of voxels, use ``diagnosticEvaluate(deltaTime:scope:stepName:step:)`` which returns a list of ``CADetailedDiagnostic`` for each voxel updated during its evaluation.
 public final class CASimulationEngine<T: CASimulationStorage> {
     #if canImport(os)
         let signposter: OSSignposter
@@ -145,69 +145,53 @@ public final class CASimulationEngine<T: CASimulationStorage> {
             signposter.endInterval("tick.evaluate", state)
         #endif
     }
-//
-//    /// Run a rule against the collection of voxels, updating the simulation and collecting diagnostics as it processes.
-//    /// - Parameters:
-//    ///   - deltaTime: The time step to use for the rule evaluation.
-//    ///   - rule: The cellular automata rule to process.
-//    /// - Returns: A list of ``CADetailedDiagnostic``, one for each voxel updated.
-//    @discardableResult public func diagnosticEvaluate(deltaTime: Duration, rule: some CASimulationRule<T>) -> [CADetailedDiagnostic<T>] {
-//        var diagnostics: [CADetailedDiagnostic<T>] = []
-//
-//        var newVoxels: VoxelArray<T>
-//        let currentVoxels: VoxelArray<T>
-//        var newActives: [VoxelIndex] = []
-//        if activeStorage {
-//            newVoxels = _voxelStorage1
-//            currentVoxels = _voxelStorage2
-//        } else {
-//            newVoxels = _voxelStorage2
-//            currentVoxels = _voxelStorage1
-//        }
-//
-//        switch rule.scope {
-//        case .active:
-//            for i in _actives {
-//                guard var temp = currentVoxels[i] else { continue }
-//                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
-//                if result.updatedVoxel {
-//                    newActives.append(i)
-//                    newVoxels[i] = temp
-//                    diagnostics.append(
-//                        CADetailedDiagnostic(index: i, rule: rule.name, initialValue: currentVoxels[i], finalValue: newVoxels[i], messages: result.diagnostic?.messages ?? [])
-//                    )
-//                } else {
-//                    diagnostics.append(
-//                        CADetailedDiagnostic(index: i, rule: rule.name, initialValue: currentVoxels[i], finalValue: nil, messages: result.diagnostic?.messages ?? [])
-//                    )
-//                }
-//            }
-//            _actives = newActives
-//        case .all:
-//            for i in currentVoxels.bounds {
-//                guard var temp = currentVoxels[i] else { continue }
-//                let result = rule.evaluate(index: i, readVoxels: currentVoxels, newVoxel: &temp, deltaTime: deltaTime)
-//                if result.updatedVoxel {
-//                    newActives.append(i)
-//                    newVoxels[i] = temp
-//                    diagnostics.append(
-//                        CADetailedDiagnostic(index: i, rule: rule.name, initialValue: currentVoxels[i], finalValue: newVoxels[i], messages: result.diagnostic?.messages ?? [])
-//                    )
-//                } else {
-//                    diagnostics.append(
-//                        CADetailedDiagnostic(index: i, rule: rule.name, initialValue: currentVoxels[i], finalValue: nil, messages: result.diagnostic?.messages ?? [])
-//                    )
-//                }
-//            }
-//            _actives = newActives
-//        }
-//
-//        if activeStorage {
-//            _voxelStorage1 = newVoxels
-//        } else {
-//            _voxelStorage2 = newVoxels
-//        }
-//        activeStorage.toggle()
-//        return diagnostics
-//    }
+
+    /// Run a rule against the collection of voxels, updating the simulation and collecting diagnostics as it processes.
+    /// - Parameters:
+    ///   - deltaTime: The time step to use for the rule evaluation.
+    ///   - scope: The scope for the step's evaluation.
+    ///   - stepName: The name of the step.
+    ///   - step: The step to evaluate.
+    /// - Returns: A list of ``CADetailedDiagnostic``, one for each voxel updated.
+    @discardableResult public func diagnosticEvaluate(deltaTime _: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) -> [CADetailedDiagnostic<T.T>] {
+        var diagnostics: [CADetailedDiagnostic<T.T>] = []
+        changed = Set<Int>(minimumCapacity: bounds.size)
+        
+        switch scope {
+        case .active:
+            for i in _actives {
+                let linearIndex: Int = bounds._unchecked_linearize(i)
+                // guard var temp = currentVoxels[i] else { continue }
+                let result = step.evaluate(linearIndex: linearIndex, storage0: storage0, storage1: &storage1)
+                if result.updatedVoxel {
+                    changed.insert(linearIndex)
+                    diagnostics.append(
+                        CADetailedDiagnostic(index: i, rule: stepName, initialValue: storage0.voxelAt(linearIndex), finalValue: storage1.voxelAt(linearIndex), messages: result.diagnostic?.messages ?? [])
+                    )
+                } else {
+                    diagnostics.append(
+                        CADetailedDiagnostic(index: i, rule: stepName, initialValue: storage0.voxelAt(linearIndex), finalValue: nil, messages: result.diagnostic?.messages ?? [])
+                    )
+                }
+            }
+
+        case .all:
+            for i in 0 ..< bounds.size {
+                // guard var temp = currentVoxels[i] else { continue }
+                let result = step.evaluate(linearIndex: i, storage0: storage0, storage1: &storage1)
+                let voxelIndex = bounds._unchecked_delinearize(i)
+                if result.updatedVoxel {
+                    changed.insert(i)
+                    diagnostics.append(
+                        CADetailedDiagnostic(index: voxelIndex, rule: stepName, initialValue: storage0.voxelAt(i), finalValue: storage1.voxelAt(i), messages: result.diagnostic?.messages ?? [])
+                    )
+                } else {
+                    diagnostics.append(
+                        CADetailedDiagnostic(index: voxelIndex, rule: stepName, initialValue: storage0.voxelAt(i), finalValue: nil, messages: result.diagnostic?.messages ?? [])
+                    )
+                }
+            }
+        }
+        return diagnostics
+    }
 }
