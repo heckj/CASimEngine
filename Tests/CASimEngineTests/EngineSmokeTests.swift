@@ -74,4 +74,19 @@ final class EngineSmokeTests: XCTestCase {
         }
         // standard test time: loosely 0.250 seconds (debug build)
     }
+
+    func testDiagnosticEvaluate() throws {
+        let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(99, 99, 99))
+        let seed = VoxelArray(bounds: bounds, initialValue: Float(15))
+        let engine = CASimulationEngine(SingleFloatStorage(seed), rules: [
+            .eval(name: "increment", scope: .all, IncrementSingleFloat()),
+        ])
+
+        for _ in 0 ... 10 {
+            engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
+        }
+
+        let check = engine.diagnosticEvaluate(deltaTime: .seconds(0.1), scope: .all, stepName: "increment", step: IncrementSingleFloat())
+        XCTAssertEqual(check.count, 1_000_000)
+    }
 }

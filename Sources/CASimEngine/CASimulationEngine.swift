@@ -156,7 +156,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
     @discardableResult public func diagnosticEvaluate(deltaTime _: Duration, scope: CARuleScope, stepName: String, step: some EvaluateStep<T>) -> [CADetailedDiagnostic<T.T>] {
         var diagnostics: [CADetailedDiagnostic<T.T>] = []
         changed = Set<Int>(minimumCapacity: bounds.size)
-        
+
         switch scope {
         case .active:
             for i in _actives {
