@@ -1,4 +1,4 @@
-internal import Voxels
+public import Voxels
 
 #if canImport(os)
     import os
@@ -7,7 +7,7 @@ internal import Voxels
 /// A cellular automata simulation engine.
 ///
 /// Initialize the engine with a collection of voxels and rules that operate on those voxels.
-/// Call ``tick(deltaTime:)`` to increment the simulation, and read out the values using ``voxels``.
+/// Call ``tick(deltaTime:)`` to increment the simulation, and read out the current state from the property ``current``, or a collection of the updated values from the function ``changes()``.
 ///
 /// During operation, the engine runs the rules in the order that you provide them when creating the engine.
 ///
@@ -23,6 +23,8 @@ public final class CASimulationEngine<T: CASimulationStorage> {
 
     var _actives: [VoxelIndex] = []
 
+    var changed: Set<Int>
+
     let bounds: VoxelBounds
 
     let rules: [CASimulationRule<T>]
@@ -31,11 +33,20 @@ public final class CASimulationEngine<T: CASimulationStorage> {
     public let diagnosticStream: AsyncStream<CADiagnostic>
     let _diagnosticContinuation: AsyncStream<CADiagnostic>.Continuation
 
-    var current: VoxelArray<T.T> {
+    public var current: VoxelArray<T.T> {
         storage0.current
     }
 
-//    public init(_ seed: any VoxelAccessible<T>, rules: [CASimulationRule<T>]) {
+    /// Returns a collection of VoxelUpdate the represent the changed values in the simulation.
+    public func changes() -> [VoxelUpdate<T.T>] {
+        var collected: [VoxelUpdate<T.T>] = []
+        for linearIndex in changed {
+            let voxelIndex = bounds._unchecked_delinearize(linearIndex)
+            collected.append(.init(index: voxelIndex, value: storage0.voxelAt(linearIndex)))
+        }
+        return collected
+    }
+
     public init(_ seed: T, rules: [CASimulationRule<T>]) {
         #if canImport(os)
             signposter = OSSignposter(subsystem: "Engine", category: .pointsOfInterest)
@@ -47,6 +58,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
         // set all voxels as initially active
         _actives = Array(storage0.bounds)
         self.rules = rules
+        changed = Set<Int>(minimumCapacity: bounds.size)
         (diagnosticStream, _diagnosticContinuation) = AsyncStream.makeStream(of: CADiagnostic.self)
     }
 
@@ -58,6 +70,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
     /// Diagnostics from the rule, if any, are emitted to ``diagnosticStream``.
     /// - Parameter deltaTime: The time step to use for the rule evaluation.
     public func tick(deltaTime: Duration) {
+        changed = Set<Int>(minimumCapacity: bounds.size)
         #if canImport(os)
             let signpostId = signposter.makeSignpostID()
             let state = signposter.beginInterval("tick", id: signpostId)
@@ -103,6 +116,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
                 let result = step.evaluate(linearIndex: linearIndex, storage0: storage0, storage1: &storage1)
                 if result.updatedVoxel {
                     newActives.append(i)
+                    changed.insert(linearIndex)
                 }
                 if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(
@@ -117,6 +131,7 @@ public final class CASimulationEngine<T: CASimulationStorage> {
                 let voxelIndex = bounds._unchecked_delinearize(i)
                 if result.updatedVoxel {
                     newActives.append(voxelIndex)
+                    changed.insert(i)
                 }
                 if let diagnostic = result.diagnostic {
                     _diagnosticContinuation.yield(

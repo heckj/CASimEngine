@@ -14,7 +14,6 @@ final class EngineSmokeTests: XCTestCase {
 
         let engine = CASimulationEngine(SingleFloatStorage(seed), rules: [
             .eval(name: "increment", scope: .all, IncrementSingleFloat()),
-            .swap(name: "swap", SwapSingleFloat()),
         ])
 
         XCTAssertEqual(engine._actives.count, 100 * 100 * 100)
@@ -22,10 +21,57 @@ final class EngineSmokeTests: XCTestCase {
         engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         XCTAssertEqual(engine._actives.count, 1_000_000)
 
+        // verify the values have incremented once
+        XCTAssertEqual(engine.current[VoxelIndex(0, 0, 0)], 2)
+        XCTAssertEqual(engine.current[VoxelIndex(1, 1, 1)], 1)
+
         measure {
             engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
         }
         // standard test time: loosely 0.518 seconds (debug build)
         // 0.427 - Xcode 16.2 beta 3
+
+        // adding changes slowed this down to: 0.615, 0.555 with pre-allocating storage
+    }
+
+    func testStateGenerationTiming() throws {
+        let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(99, 99, 99))
+        var seed = VoxelArray(bounds: bounds, initialValue: Float(0))
+        for idx in bounds.y(0 ... 0).indices {
+            seed[idx] = 1
+        }
+
+        let engine = CASimulationEngine(SingleFloatStorage(seed), rules: [
+            .eval(name: "increment", scope: .all, IncrementSingleFloat()),
+        ])
+        engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
+
+        measure {
+            let state = engine.current
+            XCTAssertEqual(state.bounds, bounds)
+        }
+        // standard test time: loosely 0.278 seconds (debug build)
+    }
+
+    func testChangesTiming() throws {
+        let bounds = VoxelBounds(min: .init(0, 0, 0), max: .init(99, 99, 99))
+        var seed = VoxelArray(bounds: bounds, initialValue: Float(0))
+        for idx in bounds.y(0 ... 0).indices {
+            seed[idx] = 1
+        }
+
+        let engine = CASimulationEngine(SingleFloatStorage(seed), rules: [
+            .eval(name: "increment", scope: .all, IncrementSingleFloat()),
+        ])
+
+        for _ in 0 ... 10 {
+            engine.tick(deltaTime: Duration(secondsComponent: 1, attosecondsComponent: 0))
+        }
+
+        measure {
+            let state = engine.changes()
+            XCTAssertEqual(state.count, 1_000_000)
+        }
+        // standard test time: loosely 0.250 seconds (debug build)
     }
 }

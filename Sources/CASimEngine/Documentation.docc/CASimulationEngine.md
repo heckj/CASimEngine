@@ -6,13 +6,14 @@
 
 - ``init(_:rules:)``
 
-### Running the simulation
+### Running the Simulation
 
 - ``tick(deltaTime:)``
 
-### Accessing the simulation
+### Accessing the state of the Simulation
 
-- ``voxels``
+- ``current``
+- ``changes()``
 - ``diagnosticStream``
 
 ### Testing Rules

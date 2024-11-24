@@ -10,7 +10,9 @@
 ### Inspecting Storage
 
 - ``bounds``
+- ``uninitializedDefault``
 
 ### Retrieving Updates
 
-- ``changes()``
+- ``CASimulationStorage/voxelAt(_:)``
+- ``CASimulationStorage/current``
