@@ -9,7 +9,7 @@ import Voxels
 // License CC0, as referenced
 // https://git.science.uu.nl/w.g.vanderscheer/infomov-retro-voxel-fluids.git `WrldTmpl8-main/LICENSE`
 
-// General iteration:
+// General execution flow for each iteration:
 //    cape->Tick(deltaTime);
 //    cape->ConvertToVoxels();
 
