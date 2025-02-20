@@ -632,39 +632,55 @@ let MAXV = 1.0 // 0.33f
 // }
 
 struct MaterialAdvection: EvaluateStep {
-    public typealias StorageType = FluidSimStorage
+    typealias StorageType = FluidSimStorage
 
     public let name: String = "MaterialAdvection"
     public let scope: CARuleScope = .active
 
-    public func evaluate(linearIndex _: Int, deltaTime: Duration, storage0 _: StorageType, storage1 _: inout StorageType) -> CARuleResult {
+    public func evaluate(linearIndex: Int, deltaTime: Duration, storage0: StorageType, storage1 _: inout StorageType) -> CARuleResult {
         // Use the velocities stored in the current voxel to determine the amount of mass
         // moved, both left and right ( neg neighbors, pos neighbors ). To do this, we look
         // at the X, Y, and Z velocity in this cell, compute the ∂ momentum (mass * vel),
         // and sum up the incoming/outgoing flows to determine a new mass for this cell.
 
-        guard let cell = readVoxels.value(index),
-              let cellxl = readVoxels.value(index.adding(VoxelIndex(-1, 0, 0))), // l means neg index (1) neighbors
-              let cellyl = readVoxels.value(index.adding(VoxelIndex(0, -1, 0))),
-              let cellzl = readVoxels.value(index.adding(VoxelIndex(0, 0, -1))),
-              let cellxr = readVoxels.value(index.adding(VoxelIndex(1, 0, 0))), // r means pos index (1) neighbors
-              let cellyr = readVoxels.value(index.adding(VoxelIndex(0, 1, 0))),
-              let cellzr = readVoxels.value(index.adding(VoxelIndex(0, 0, 1)))
-        else { fatalError() }
+        let currentVoxelIndex: VoxelIndex = storage0.bounds._unchecked_delinearize(linearIndex)
+
+        // get the linear index position of the neighbors needed
+        let cellxl_position = storage0.bounds._unchecked_linearize(currentVoxelIndex.adding(VoxelIndex(-1, 0, 0)))
+        // l means neg index (1) neighbors
+
+        let cellyl_position = storage0.bounds._unchecked_linearize(currentVoxelIndex.adding(VoxelIndex(0, -1, 0)))
+
+        let cellzl_position = storage0.bounds._unchecked_linearize(currentVoxelIndex.adding(VoxelIndex(0, 0, -1)))
+
+        let cellxr_position = storage0.bounds._unchecked_linearize(currentVoxelIndex.adding(VoxelIndex(1, 0, 0))) // r means pos index (1) neighbors
+
+        let cellyr_position = storage0.bounds._unchecked_linearize(currentVoxelIndex.adding(VoxelIndex(0, 1, 0)))
+
+        let cellzr_position = storage0.bounds._unchecked_linearize(currentVoxelIndex.adding(VoxelIndex(0, 0, 1)))
+        // ^ make this into an inlined helper function?
+
+        let cell = storage0.voxelAt(linearIndex)
+        let cellxl = storage0.voxelAt(cellxl_position) // l means neg index (1) neighbors
+        let cellyl = storage0.voxelAt(cellyl_position)
+        let cellzl = storage0.voxelAt(cellzl_position)
+        let cellxr = storage0.voxelAt(cellxr_position) // r means pos index (1) neighbors
+        let cellyr = storage0.voxelAt(cellyr_position)
+        let cellzr = storage0.voxelAt(cellzr_position)
 
         // change in mass through the -X face
-        let deltaMassXL = cell.flow_x < 0 ? cell.flow_x * cell.fluidMass() : cell.flow_x * cellxl.fluidMass()
+        let deltaMassXL = cell.flowX < 0 ? cell.flowX * cell.volume : cell.flowX * cellxl.volume
         // change in mass through the -Y face
-        let deltaMassYL = cell.flow_y < 0 ? cell.flow_y * cell.fluidMass() : cell.flow_y * cellyl.fluidMass()
+        let deltaMassYL = cell.flowY < 0 ? cell.flowY * cell.volume : cell.flowY * cellyl.volume
         // change in mass through the -Z face
-        let deltaMassZL = cell.flow_z < 0 ? cell.flow_z * cell.fluidMass() : cell.flow_z * cellzl.fluidMass()
+        let deltaMassZL = cell.flowZ < 0 ? cell.flowZ * cell.volume : cell.flowZ * cellzl.volume
 
         // change in mass through the X face
-        let deltaMassXR = cell.flow_x < 0 ? -cell.flow_x * cellxr.fluidMass() : -cell.flow_x * cell.fluidMass()
+        let deltaMassXR = cell.flowX < 0 ? -cell.flowX * cellxr.volume : -cell.flowX * cell.volume
         // change in mass through the Y face
-        let deltaMassYR = cell.flow_y < 0 ? -cell.flow_y * cellyr.fluidMass() : -cell.flow_y * cell.fluidMass()
+        let deltaMassYR = cell.flowY < 0 ? -cell.flowY * cellyr.volume : -cell.flowY * cell.volume
         // change in mass through the Z face
-        let deltaMassZR = cell.flow_z < 0 ? -cell.flow_z * cellzr.fluidMass() : -cell.flow_z * cell.fluidMass()
+        let deltaMassZR = cell.flowZ < 0 ? -cell.flowZ * cellzr.volume : -cell.flowZ * cell.volume
 
         //    float dxl = vxl < 0 ? vxl * min(1.0f, mat) : vxl * min(1.0f, matxl);
         //    float dyl = vyl < 0 ? vyl * min(1.0f, mat) : vyl * min(1.0f, matyl);
@@ -673,7 +689,7 @@ struct MaterialAdvection: EvaluateStep {
         //    float dyr = vyr < 0 ? -vyr * min(1.0f, matyr) : -vyr * min(1.0f, mat);
         //    float dzr = vzr < 0 ? -vzr * min(1.0f, matzr) : -vzr * min(1.0f, mat);
 
-        var newMass = cell.fluidMass() + deltaMassXL + deltaMassXR + deltaMassYL + deltaMassYR + deltaMassZL + deltaMassZR
+        var newMass = cell.volume + deltaMassXL + deltaMassXR + deltaMassYL + deltaMassYR + deltaMassZL + deltaMassZR
         assert(newMass >= 0, "negative mass! (timestep too high and or not using save MAXV?)")
         //    //update incoming matter into current cell and outgoing matter neighbour cells
         //    float nmat = mat + MaterialChange(x,y,z, vxl, vxr, vyl, vyr, vzl, vzr);
@@ -876,27 +892,28 @@ struct MaterialAdvection: EvaluateStep {
 // }
 
 // STEP4: Solve for pressure that prevents divergence
-struct Pressure: CASimulationRule {
-    public typealias VoxelType = MultiResourceVoxel
+struct Pressure: EvaluateStep {
+    typealias StorageType = FluidSimStorage
 
     public let name: String = "SolvePressure"
     public let scope: CARuleScope = .active
 
-    public func evaluate(index: Voxels.VoxelIndex, readVoxels: Voxels.VoxelArray<VoxelType>, newVoxel: inout VoxelType, deltaTime _: Duration) -> CARuleResult {
+    func evaluate(linearIndex: Int, deltaTime _: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // Determine a suitable pressure value that prevents divergence, given
         // the cells divergence, and a best estimation of the pressure of neighbors
         // Repeatedly calling this improves this estimation
-        guard let thisVoxel = readVoxels.value(index) else { fatalError() }
-        let div = thisVoxel.fluidMass()
+
+        let thisVoxel: FluidSimCell = storage0.voxelAt(linearIndex)
+        let div = thisVoxel.volume
         var neighborPressure: Float = 0
         var k: Float = 0
-        for neighbor in index.neighbors1() {
-            guard let voxelData = readVoxels.value(neighbor) else { fatalError() }
+        for neighborLinearIndex in storage0.bounds.neighbors(of: linearIndex) {
+            let voxelData = storage0.voxelAt(neighborLinearIndex)
             neighborPressure += max(0.0, voxelData.pressure)
-            k += voxelData.fluidVolume()
+            k += voxelData.volume
         }
         let estimatedPressure = (div + neighborPressure) / k
-        newVoxel.pressure = estimatedPressure
+        storage1.fluidPressure[linearIndex] = estimatedPressure
         return .indexUpdated
     }
 }

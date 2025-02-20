@@ -3,8 +3,8 @@ public import Voxels
 
 public enum CellType: Sendable {
     public typealias RawValue = UInt8
-    case open
-    case solid
+    case open // available for fluid to move in and out of
+    case solid // blocked - wall or other solid around which fluid moves
 }
 
 public struct FluidSimCell: Sendable, Hashable {
@@ -32,6 +32,7 @@ extension FluidSimCell {
     }
 }
 
+// pretty sure I want this to be a reference type...
 public struct FluidSimStorage: CASimulationStorage {
     public typealias T = FluidSimCell
     public let bounds: VoxelBounds
