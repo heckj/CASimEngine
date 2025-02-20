@@ -1,5 +1,5 @@
-import CASimEngine
-import Voxels
+public import CASimEngine
+public import Voxels
 
 // Original implementation by William Van Der Scheer
 // Master's Thesis, Utrecht University, 2022
