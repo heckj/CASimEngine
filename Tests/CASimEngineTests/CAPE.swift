@@ -631,13 +631,13 @@ let MAXV = 1.0 // 0.33f
 //    brick_m[brick_addr] += nmat;
 // }
 
-struct MaterialAdvection: EvaluateStep {
-    typealias StorageType = FluidSimStorage
+public struct MaterialAdvection: EvaluateStep {
+    public typealias StorageType = FluidSimStorage
 
     public let name: String = "MaterialAdvection"
     public let scope: CARuleScope = .active
 
-    public func evaluate(linearIndex: Int, deltaTime: Duration, storage0: StorageType, storage1 _: inout StorageType) -> CARuleResult {
+    public func evaluate(linearIndex: Int, deltaTime: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // Use the velocities stored in the current voxel to determine the amount of mass
         // moved, both left and right ( neg neighbors, pos neighbors ). To do this, we look
         // at the X, Y, and Z velocity in this cell, compute the ∂ momentum (mass * vel),
@@ -668,19 +668,34 @@ struct MaterialAdvection: EvaluateStep {
         let cellyr = storage0.voxelAt(cellyr_position)
         let cellzr = storage0.voxelAt(cellzr_position)
 
+        // Use the flow measurement of the cell to determine the amount of fluid moved.
+
+        // The min(1.0, cell.volume) is a clamp to ensure that the flow is not greater than the volume
+        // which is assuming that a volume of each voxel is 1, and that a fluid is NOT compressible
+        // and density is 1.0, so volume and mass are effectively equivalent.
+
+        // The flow value stored in the voxel location has a direction component indicated by its
+        // sign, so a negative flow is moving towards the negative value on the axis. For that value,
+        // we use the flow from this voxel. If the value is position, it's flowing to the positive direction
+        // on the axis, so we need to ask the voxel in the negative direction what its flow is to compute
+        // the amount that moves.
+
+        // IMPLNOTE(heckj): FLOW in CAPE C++ code is damped - reduced by a factor of AL, which
+        // isn't (yet) being done in this code.
+
         // change in mass through the -X face
-        let deltaMassXL = cell.flowX < 0 ? cell.flowX * cell.volume : cell.flowX * cellxl.volume
+        let deltaMassXL = cell.flowX < 0 ? cell.flowX * min(1.0, cell.volume) : cell.flowX * min(1.0, cellxl.volume)
         // change in mass through the -Y face
-        let deltaMassYL = cell.flowY < 0 ? cell.flowY * cell.volume : cell.flowY * cellyl.volume
+        let deltaMassYL = cell.flowY < 0 ? cell.flowY * min(1.0, cell.volume) : cell.flowY * min(1.0, cellyl.volume)
         // change in mass through the -Z face
-        let deltaMassZL = cell.flowZ < 0 ? cell.flowZ * cell.volume : cell.flowZ * cellzl.volume
+        let deltaMassZL = cell.flowZ < 0 ? cell.flowZ * min(1.0, cell.volume) : cell.flowZ * min(1.0, cellzl.volume)
 
         // change in mass through the X face
-        let deltaMassXR = cell.flowX < 0 ? -cell.flowX * cellxr.volume : -cell.flowX * cell.volume
+        let deltaMassXR = cell.flowX < 0 ? -cell.flowX * min(1.0, cellxr.volume) : -cell.flowX * min(1.0, cell.volume)
         // change in mass through the Y face
-        let deltaMassYR = cell.flowY < 0 ? -cell.flowY * cellyr.volume : -cell.flowY * cell.volume
+        let deltaMassYR = cell.flowY < 0 ? -cell.flowY * min(1.0, cellyr.volume) : -cell.flowY * min(1.0, cell.volume)
         // change in mass through the Z face
-        let deltaMassZR = cell.flowZ < 0 ? -cell.flowZ * cellzr.volume : -cell.flowZ * cell.volume
+        let deltaMassZR = cell.flowZ < 0 ? -cell.flowZ * min(1.0, cellzr.volume) : -cell.flowZ * min(1.0, cell.volume)
 
         //    float dxl = vxl < 0 ? vxl * min(1.0f, mat) : vxl * min(1.0f, matxl);
         //    float dyl = vyl < 0 ? vyl * min(1.0f, mat) : vyl * min(1.0f, matyl);
@@ -690,7 +705,7 @@ struct MaterialAdvection: EvaluateStep {
         //    float dzr = vzr < 0 ? -vzr * min(1.0f, matzr) : -vzr * min(1.0f, mat);
 
         var newMass = cell.volume + deltaMassXL + deltaMassXR + deltaMassYL + deltaMassYR + deltaMassZL + deltaMassZR
-        assert(newMass >= 0, "negative mass! (timestep too high and or not using save MAXV?)")
+        assert(newMass >= 0, "negative mass! (the time-step is too high and or not using save MAXV?)")
         //    //update incoming matter into current cell and outgoing matter neighbour cells
         //    float nmat = mat + MaterialChange(x,y,z, vxl, vxr, vyl, vyr, vzl, vzr);
         // #if DEBUG_MODE == 1
@@ -706,16 +721,34 @@ struct MaterialAdvection: EvaluateStep {
         //
         //    //Remember outgoing momentum (useful for velocity update)
         //    //Store temporarily in unused velocity buffers
+        var outgoingMass = min(0.0, deltaMassXL) + min(0.0, deltaMassYL) + min(0.0, deltaMassZL) +
+            min(0.0, deltaMassXR) + min(0.0, deltaMassYR) + min(0.0, deltaMassZR)
+        if cell.flowX < 0 {
+            storage1.fluidVelX[linearIndex] = cell.flowX * outgoingMass
+        } else {
+            storage1.fluidVelX[cellxr_position] = cell.flowX * outgoingMass
+        }
+        if cell.flowY < 0 {
+            storage1.fluidVelY[linearIndex] = cell.flowY * outgoingMass
+        } else {
+            storage1.fluidVelY[cellyr_position] = cell.flowY * outgoingMass
+        }
+        if cell.flowZ < 0 {
+            storage1.fluidVelZ[linearIndex] = cell.flowZ * outgoingMass
+        } else {
+            storage1.fluidVelZ[cellzr_position] = cell.flowZ * outgoingMass
+        }
         //    float om = min(0.0f, dxl) + min(0.0f, dyl) + min(0.0f, dzl)
         //             + min(0.0f, dxr) + min(0.0f, dyr) + min(0.0f, dzr);
         //    if (vxl < 0) SetData(x, y, z, vxl * om, vx_bricks);
         //    if (vyl < 0) SetData(x, y, z, vyl * om, vy_bricks);
         //    if (vzl < 0) SetData(x, y, z, vzl * om, vz_bricks);
-        //    if (vxr > 0) SetData(x + 1, y, z, vxr * om, vx_bricks);
-        //    if (vyr > 0) SetData(x, y + 1, z, vyr * om, vy_bricks);
-        //    if (vzr > 0) SetData(x, y, z + 1, vzr * om, vz_bricks);
+        //    if (vxr > 0) SetData(x + 1, y, z, vxr * om, vx_bricks); // cellxr_position
+        //    if (vyr > 0) SetData(x, y + 1, z, vyr * om, vy_bricks); // cellyr_position
+        //    if (vzr > 0) SetData(x, y, z + 1, vzr * om, vz_bricks); // cellzr_position
 
-        // newVoxel. = estimatedPressure
+        storage1.fluidMass[linearIndex] = cell.volume + newMass
+
         return .indexUpdated
     }
 }
