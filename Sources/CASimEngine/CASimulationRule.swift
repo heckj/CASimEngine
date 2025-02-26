@@ -23,10 +23,10 @@ public protocol EvaluateStep<StorageType> {
     associatedtype StorageType: CASimulationStorage
     /// The function that the simulation engine calls to process a cell.
     /// - Parameters:
-    ///   - linearIndex: The linear index of the cell to process.
+    ///   - cell: The position of the cell to process and the linear index locations of its neighbors.
     ///   - deltaTime: The time step to use for the rule evaluation.
     ///   - storage0: The first storage container (to read from).
     ///   - storage1: The second storage container (to write to).
     /// - Returns: a simulation result indicator with optional diagnostic messages.
-    func evaluate(linearIndex: Int, deltaTime: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult
+    func evaluate(cell: CAIndex, deltaTime: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult
 }

@@ -7,7 +7,7 @@ public extension VoxelBounds {
     ///
     /// Neighbors that are outside the bounds are not included in the resulting array of linear indices.
     @inline(__always)
-    func neighbors(of linearIndex: Int) -> [Int] {
+    func neighborsInBounds(of linearIndex: Int) -> [Int] {
         let currentVoxelIndex: VoxelIndex = _unchecked_delinearize(linearIndex)
 
         let offsets = [
