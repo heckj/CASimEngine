@@ -44,6 +44,8 @@ public struct CAIndex: Sendable {
     /// If the neighbor is outside the bounds, the value is `-1`.
     public let zr: Int
 
+    public var neighborsInBounds: [Int] { [xl, xr, yl, yr, zl, zr].filter { $0 != -1 } }
+
     // Manhattan distance 2 neighbors
 
     /// The linear index of the neighbor at `x-1, y-1` of the current cell.

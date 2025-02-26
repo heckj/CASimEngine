@@ -1096,14 +1096,12 @@ struct Pressure: EvaluateStep {
         // the cells divergence, and a best estimation of the pressure of neighbors
         // Repeatedly calling this improves this estimation
 
-        let thisVoxel: FluidSimCell = storage0.voxelAt(cell.index)
-        let div = thisVoxel.volume
+        let div = storage0.fluidMass[cell.index]
         var neighborPressure: Float = 0
         var k: Float = 0
-        for neighborLinearIndex in storage0.bounds.neighborsInBounds(of: cell.index) {
-            let voxelData = storage0.voxelAt(neighborLinearIndex)
-            neighborPressure += max(0.0, voxelData.pressure)
-            k += voxelData.volume
+        for neighborIndex in cell.neighborsInBounds {
+            neighborPressure += max(0.0, storage0.fluidPressure[neighborIndex])
+            k += storage0.fluidMass[neighborIndex] // specifically volume, but volume/mass identical in this
         }
         let estimatedPressure = (div + neighborPressure) / k
         storage1.fluidPressure[cell.index] = estimatedPressure
