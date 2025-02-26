@@ -21,6 +21,7 @@ Call ``CASimulationEngine/tick(deltaTime:)`` to increment the simulation.
 ### Writing Simulation Rules
 
 - ``CASimulationRule``
+- ``CAIndex``
 - ``CARuleScope``
 - ``CARuleResult``
 

@@ -34,9 +34,9 @@ struct SingleIntStorage: CASimulationStorage {
 
 struct IncrementSingleInt: EvaluateStep {
     typealias StorageType = SingleIntStorage
-    func evaluate(linearIndex: Int, deltaTime _: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
+    func evaluate(cell: CAIndex, deltaTime _: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // need read access to storage0 and write access to storage1
-        storage1.intValue[linearIndex] = storage0.intValue[linearIndex] + 1
+        storage1.intValue[cell.index] = storage0.intValue[cell.index] + 1
 
         // computing the voxelIndex from the linear index
         // let _ = storage0.bounds._unchecked_delinearize(linearIndex)
@@ -46,7 +46,7 @@ struct IncrementSingleInt: EvaluateStep {
 
 struct NoEffect: EvaluateStep {
     typealias StorageType = SingleIntStorage
-    func evaluate(linearIndex _: Int, deltaTime _: Duration, storage0 _: StorageType, storage1 _: inout StorageType) -> CARuleResult {
+    func evaluate(cell _: CAIndex, deltaTime _: Duration, storage0 _: StorageType, storage1 _: inout StorageType) -> CARuleResult {
         .noUpdate
     }
 }

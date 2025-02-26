@@ -4,5 +4,7 @@
 
 ### Defining Simulation Rules
 
-- ``evaluate(linearIndex:deltaTime:storage0:storage1:)``
+- ``evaluate(neighbors:deltaTime:storage0:storage1:)``
+- ``CAIndex``
 - ``StorageType``
+

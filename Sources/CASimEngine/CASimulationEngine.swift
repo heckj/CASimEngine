@@ -116,8 +116,9 @@ public final class CASimulationEngine<T: CASimulationStorage> {
         case .active:
             for i in _actives {
                 let linearIndex: Int = bounds._unchecked_linearize(i)
+                let cell = CAIndex(linearIndex: linearIndex, bounds: bounds)
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: linearIndex, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
+                let result = step.evaluate(cell: cell, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 if result.updatedVoxel {
                     newActives.append(i)
                     changed.insert(linearIndex)
@@ -130,8 +131,9 @@ public final class CASimulationEngine<T: CASimulationStorage> {
             _actives = newActives
         case .all:
             for i in 0 ..< bounds.size {
+                let cell = CAIndex(linearIndex: i, bounds: bounds)
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: i, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
+                let result = step.evaluate(cell: cell, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 let voxelIndex = bounds._unchecked_delinearize(i)
                 if result.updatedVoxel {
                     newActives.append(voxelIndex)
@@ -165,8 +167,9 @@ public final class CASimulationEngine<T: CASimulationStorage> {
         case .active:
             for i in _actives {
                 let linearIndex: Int = bounds._unchecked_linearize(i)
+                let cell = CAIndex(linearIndex: linearIndex, bounds: bounds)
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: linearIndex, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
+                let result = step.evaluate(cell: cell, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 if result.updatedVoxel {
                     changed.insert(linearIndex)
                     diagnostics.append(
@@ -182,7 +185,8 @@ public final class CASimulationEngine<T: CASimulationStorage> {
         case .all:
             for i in 0 ..< bounds.size {
                 // guard var temp = currentVoxels[i] else { continue }
-                let result = step.evaluate(linearIndex: i, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
+                let cell = CAIndex(linearIndex: i, bounds: bounds)
+                let result = step.evaluate(cell: cell, deltaTime: deltaTime, storage0: storage0, storage1: &storage1)
                 let voxelIndex = bounds._unchecked_delinearize(i)
                 if result.updatedVoxel {
                     changed.insert(i)
