@@ -1,12 +1,14 @@
 # ``CASimEngine``
 
-An engine to run cellular automata simulations over a collection of voxels.
+An engine to run cellular automata simulations in 3D space.
 
 ## Overview
 
-The library provides the structure drive a cellular automata simulation in 3-dimensions using voxels.
-The library provides a structure for rules, which you add to a simulation to run. The engine provides a 
-computed property, ``CASimulationEngine/current`` that exposes the current state of the system.
+The library provides an engine to run a cellular automata simulation in 3-dimensions.
+In using the library, you provide types that represent a set of rules and a storage structure to hold the simulation state.
+The storage engine protocol, `CASimulationStorage`, allows you to structure the underlying data efficiently
+as well as export the resulting state to a `VoxelArray` for visualization or further processing.
+
 Use ``CASimulationEngine/changes()`` to get a list of the changed values.
 
 Call ``CASimulationEngine/tick(deltaTime:)`` to increment the simulation.
