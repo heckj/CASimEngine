@@ -1,10 +1,10 @@
 # CASimEngine
 
-An engine to run cellular automata simulations over a collection of voxels.
+An engine to run cellular automata simulations over a 3D space.
 
 ## Checking things in Linux
 
-(Uses Docker or Orbstack)
+(Use Docker or Orbstack)
 
 Preload the images:
 
@@ -25,4 +25,3 @@ Append on specific scripts or commands for run-and-done:
 ```bash
 docker run --rm --privileged --interactive --tty --volume "$(pwd):/src" --workdir "/src" swift:5.9 ./scripts/docker-test.bash
 ```
-
