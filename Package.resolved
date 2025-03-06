@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/heckj/Heightmap",
       "state" : {
-        "revision" : "93436af1ed955f1599f1dc67752cda8d0ef2c385",
-        "version" : "0.6.3"
+        "revision" : "6624ec019a1da3ab37d19aa7fea054a3071d4be8",
+        "version" : "0.6.4"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/swift-issue-reporting",
       "state" : {
-        "revision" : "a3f634d1a409c7979cabc0a71b3f26ffa9fc8af1",
-        "version" : "1.4.3"
+        "revision" : "39de59b2d47f7ef3ca88a039dff3084688fe27f4",
+        "version" : "1.5.2"
       }
     },
     {
