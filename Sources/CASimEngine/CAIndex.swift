@@ -155,7 +155,7 @@ public struct CAIndex: Sendable {
     ///
     /// If the neighbor is outside the bounds, the value is `-1`.
     @inline(__always) public var xr2: Int {
-        voxelIndex.x >= (bounds.max.x - 1) ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(2, 0, 0))) : -1
+        voxelIndex.x < (bounds.max.x - 1) ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(2, 0, 0))) : -1
     }
 
     /// The linear index of the neighbor at `y-2` of the current cell.
@@ -169,7 +169,7 @@ public struct CAIndex: Sendable {
     ///
     /// If the neighbor is outside the bounds, the value is `-1`.
     @inline(__always) public var yr2: Int {
-        voxelIndex.y >= (bounds.max.y - 1) ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 2, 0))) : -1
+        voxelIndex.y < (bounds.max.y - 1) ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 2, 0))) : -1
     }
 
     /// The linear index of the neighbor at `z-2` of the current cell.
@@ -183,7 +183,7 @@ public struct CAIndex: Sendable {
     ///
     /// If the neighbor is outside the bounds, the value is `-1`.
     @inline(__always) public var zr2: Int {
-        voxelIndex.z >= (bounds.max.z - 1) ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 0, 2))) : -1
+        voxelIndex.z < (bounds.max.z - 1) ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 0, 2))) : -1
     }
 
     /// Creates a new Neighbors instance.
@@ -197,14 +197,14 @@ public struct CAIndex: Sendable {
 
         xl = voxelIndex.x > 0 ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(-1, 0, 0))) : -1
 
-        xr = voxelIndex.x >= self.bounds.max.x ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(1, 0, 0))) : -1
+        xr = voxelIndex.x < self.bounds.max.x ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(1, 0, 0))) : -1
 
         yl = voxelIndex.y > 0 ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, -1, 0))) : -1
 
-        yr = voxelIndex.y >= self.bounds.max.y ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 1, 0))) : -1
+        yr = voxelIndex.y < self.bounds.max.y ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 1, 0))) : -1
 
         zl = voxelIndex.z > 0 ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 0, -1))) : -1
 
-        zr = voxelIndex.z >= self.bounds.max.z ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 0, 1))) : -1
+        zr = voxelIndex.z < self.bounds.max.z ? bounds._unchecked_linearize(voxelIndex.adding(VoxelIndex(0, 0, 1))) : -1
     }
 }

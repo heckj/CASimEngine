@@ -30,6 +30,7 @@ final class EngineSmokeTests: XCTestCase {
         }
         // standard test time: loosely 0.518 seconds (debug build)
         // 0.427 - Xcode 16.2 beta 3
+        // 0.991 sec - Xcode 16.3 beta 2 (debug build)
 
         // adding changes slowed this down to: 0.615, 0.555 with pre-allocating storage
     }
@@ -51,6 +52,7 @@ final class EngineSmokeTests: XCTestCase {
             XCTAssertEqual(state.bounds, bounds)
         }
         // standard test time: loosely 0.278 seconds (debug build)
+        // 0.289 - Xcode 16.2 beta 3 (debug build)
     }
 
     func testChangesTiming() throws {
