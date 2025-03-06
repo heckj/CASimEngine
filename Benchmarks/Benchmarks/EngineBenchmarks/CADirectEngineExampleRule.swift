@@ -3,11 +3,11 @@ import Voxels
 
 struct SingleIntStorage: CASimulationStorage {
     var uninitializedDefault: Int
-    
+
     func voxelAt(_ index: Int) -> Int {
         floatValue[index]
     }
-    
+
     let bounds: VoxelBounds
 
     var floatValue: [Int] = []
@@ -35,7 +35,7 @@ struct SwapInt: SwapStep {
 
 struct IncrementSingleInt: EvaluateStep {
     typealias StorageType = SingleIntStorage
-    func evaluate(cell: CAIndex, deltaTime: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
+    func evaluate(cell: CAIndex, deltaTime _: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         storage1.floatValue[cell.index] = storage0.floatValue[cell.index] + 1
         return .indexUpdated
     }
