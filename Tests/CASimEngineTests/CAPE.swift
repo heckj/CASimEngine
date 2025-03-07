@@ -637,16 +637,42 @@ public struct MaterialAdvection: EvaluateStep {
     public let name: String = "MaterialAdvection"
     public let scope: CARuleScope = .active
 
+    func materialChange(cell: CAIndex, storage0: StorageType, vxl: Float, vxr: Float, vyl: Float, vyr: Float, vzl: Float, vzr: Float) -> Float {
+        let mat = storage0.fluidMass[cell.index]
+        let mat_xl = storage0.fluidMass[cell.xl]
+        let mat_yl = storage0.fluidMass[cell.yl]
+        let mat_zl = storage0.fluidMass[cell.zl]
+        let mat_xr = storage0.fluidMass[cell.xr]
+        let mat_yr = storage0.fluidMass[cell.yr]
+        let mat_zr = storage0.fluidMass[cell.zr]
+
+        let dxl = vxl < 0 ? vxl * min(1.0, mat) : vxl * min(1.0, mat_xl)
+        let dyl = vyl < 0 ? vyl * min(1.0, mat) : vyl * min(1.0, mat_yl)
+        let dzl = vzl < 0 ? vzl * min(1.0, mat) : vzl * min(1.0, mat_zl)
+
+        let dxr = vxr < 0 ? -vxr * min(1.0, mat_xr) : -vxr * min(1.0, mat)
+        let dyr = vyr < 0 ? -vyr * min(1.0, mat_yr) : -vyr * min(1.0, mat)
+        let dzr = vzr < 0 ? -vzr * min(1.0, mat_zr) : -vzr * min(1.0, mat)
+
+        return dxl + dyl + dzl + dxr + dyr + dzr
+    }
+
     public func evaluate(cell: CAIndex, deltaTime: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
+        let vxl = storage0.fluidVelX[cell.index] * AL // damped velocity of this cell
+        let vyl = storage0.fluidVelY[cell.index] * AL // damped velocity of this cell
+        let vzl = storage0.fluidVelZ[cell.index] * AL // damped velocity of this cell
+        let vxr = storage0.fluidVelX[cell.xr] * AL // damped velocity of this cell
+        let vyr = storage0.fluidVelY[cell.yr] * AL // damped velocity of this cell
+        let vzr = storage0.fluidVelZ[cell.zr] * AL // damped velocity of this cell
+
+        // node focussed advection
+        //    float mat = GetData(x, y, z, m0_bricks);
+        let cell_mass = storage0.fluidMass[cell.index]
+
         // Use the velocities stored in the current voxel to determine the amount of mass
         // moved, both left and right ( neg neighbors, pos neighbors ). To do this, we look
         // at the X, Y, and Z velocity in this cell, compute the ∂ momentum (mass * vel),
         // and sum up the incoming/outgoing flows to determine a new mass for this cell.
-
-        let cell_flowX = storage0.fluidVelX[cell.index] * AL // damped velocity of this cell
-        let cell_flowY = storage0.fluidVelY[cell.index] * AL // damped velocity of this cell
-        let cell_flowZ = storage0.fluidVelZ[cell.index] * AL // damped velocity of this cell
-        let cell_mass = storage0.fluidMass[cell.index]
 
         let cellxl_mass: Float = cell.xl > 0 ? storage0.fluidMass[cell.xl] : 0
         let cellyl_mass: Float = cell.yl > 0 ? storage0.fluidMass[cell.yl] : 0
@@ -667,79 +693,64 @@ public struct MaterialAdvection: EvaluateStep {
         // on the axis, so we need to ask the voxel in the negative direction what its flow is to compute
         // the amount that moves.
 
+        // Material movement in every direction == momentum
+        // maximum density assumed to be 1, so we cap the velocity to the maximum value from that
+        // direction...
+
         // change in mass through the -X face
-        let deltaMassXL = cell_flowX < 0 ? cell_flowX * min(1.0, cell_mass) : cell_flowX * min(1.0, cellxl_mass)
+        let dxl = vxl < 0 ? vxl * min(1.0, cell_mass) : vxl * min(1.0, cellxl_mass)
         // change in mass through the -Y face
-        let deltaMassYL = cell_flowY < 0 ? cell_flowY * min(1.0, cell_mass) : cell_flowY * min(1.0, cellyl_mass)
+        let dyl = vyl < 0 ? vyl * min(1.0, cell_mass) : vyl * min(1.0, cellyl_mass)
         // change in mass through the -Z face
-        let deltaMassZL = cell_flowZ < 0 ? cell_flowZ * min(1.0, cell_mass) : cell_flowZ * min(1.0, cellzl_mass)
+        let dzl = vzl < 0 ? vzl * min(1.0, cell_mass) : vzl * min(1.0, cellzl_mass)
 
         // change in mass through the X face
-        let deltaMassXR = cell_flowX < 0 ? -cell_flowX * min(1.0, cellxr_mass) : -cell_flowX * min(1.0, cell_mass)
+        let dxr = vxr < 0 ? -vxr * min(1.0, cellxr_mass) : -vxr * min(1.0, cell_mass)
         // change in mass through the Y face
-        let deltaMassYR = cell_flowY < 0 ? -cell_flowY * min(1.0, cellyr_mass) : -cell_flowY * min(1.0, cell_mass)
+        let dyr = vyr < 0 ? -vyr * min(1.0, cellyr_mass) : -vyr * min(1.0, cell_mass)
         // change in mass through the Z face
-        let deltaMassZR = cell_flowZ < 0 ? -cell_flowZ * min(1.0, cellzr_mass) : -cell_flowZ * min(1.0, cell_mass)
+        let dzr = vzr < 0 ? -vzr * min(1.0, cellzr_mass) : -vzr * min(1.0, cell_mass)
 
-        //    float dxl = vxl < 0 ? vxl * min(1.0f, mat) : vxl * min(1.0f, matxl);
-        //    float dyl = vyl < 0 ? vyl * min(1.0f, mat) : vyl * min(1.0f, matyl);
-        //    float dzl = vzl < 0 ? vzl * min(1.0f, mat) : vzl * min(1.0f, matzl);
-        //    float dxr = vxr < 0 ? -vxr * min(1.0f, matxr) : -vxr * min(1.0f, mat);
-        //    float dyr = vyr < 0 ? -vyr * min(1.0f, matyr) : -vyr * min(1.0f, mat);
-        //    float dzr = vzr < 0 ? -vzr * min(1.0f, matzr) : -vzr * min(1.0f, mat);
+        // update incoming matter into current cell and outgoing matter neighbour cells
+        var nmat = cell_mass + materialChange(cell: cell, storage0: storage0, vxl: vxl, vxr: vxr, vyl: vyl, vyr: vyr, vzl: vzl, vzr: vzr)
+        assert(nmat >= 0, "negative mass! (the time-step is too high and or not using save MAXV?)")
 
-        var newMass = cell_mass + deltaMassXL + deltaMassXR + deltaMassYL + deltaMassYR + deltaMassZL + deltaMassZR
-        assert(newMass >= 0, "negative mass! (the time-step is too high and or not using save MAXV?)")
-        //    //update incoming matter into current cell and outgoing matter neighbour cells
-        //    float nmat = mat + MaterialChange(x,y,z, vxl, vxr, vyl, vyr, vzl, vzr);
-        // #if DEBUG_MODE == 1
-        //    if (nmat < 0) cout << "negative mass! (timestep too high and or not using save MAXV?)" << endl;
-        // #endif
-
-        // EVAPORATION
         // Apply some evaporation and set new material
-        // clamp the evaporation so that mass never goes negative...
-        //    nmat = max(0.0f, nmat - EVAPORATION * timeStep);
+
+        nmat = max(0.0, nmat - EVAPORATION * deltaTime.inSeconds)
         //    SetData(x, y, z, nmat, m_bricks);
-        newMass = max(0.0, newMass - EVAPORATION * deltaTime.inSeconds)
-        storage1.fluidMass[cell.index] = newMass
+        storage1.fluidMass[cell.index] = nmat
 
         // Remember outgoing momentum (useful for velocity update)
         // Store temporarily in unused velocity buffers
-        let outgoingMass = min(0.0, deltaMassXL) + min(0.0, deltaMassYL) + min(0.0, deltaMassZL) +
-            min(0.0, deltaMassXR) + min(0.0, deltaMassYR) + min(0.0, deltaMassZR)
+        let om = min(0.0, dxl) + min(0.0, dyl) + min(0.0, dzl) +
+            min(0.0, dxr) + min(0.0, dyr) + min(0.0, dzr)
 
-        if cell_flowX < 0 {
-            storage1.fluidVelX[cell.index] = cell_flowX * outgoingMass
+        if vxl < 0 {
+            storage1.fluidVelX[cell.index] = vxl * om
         } else {
             if cell.xr > 0 {
-                storage1.fluidVelX[cell.xr] = cell_flowX * outgoingMass
+                storage1.fluidVelX[cell.xr] = vxr * om
             }
         }
 
-        if cell_flowY < 0 {
-            storage1.fluidVelY[cell.index] = cell_flowY * outgoingMass
+        if vyl < 0 {
+            storage1.fluidVelY[cell.index] = vyl * om
         } else {
             if cell.yr > 0 {
-                storage1.fluidVelY[cell.yr] = cell_flowY * outgoingMass
+                storage1.fluidVelY[cell.yr] = vyr * om
             }
         }
-        if cell_flowZ < 0 {
-            storage1.fluidVelZ[cell.index] = cell_flowZ * outgoingMass
+        if vzl < 0 {
+            storage1.fluidVelZ[cell.index] = vzl * om
         } else {
             if cell.zr > 0 {
-                storage1.fluidVelZ[cell.zr] = cell_flowZ * outgoingMass
+                storage1.fluidVelZ[cell.zr] = vzr * om
             }
         }
 
-        //    float om = min(0.0f, dxl) + min(0.0f, dyl) + min(0.0f, dzl)
-        //             + min(0.0f, dxr) + min(0.0f, dyr) + min(0.0f, dzr);
-        //    if (vxl < 0) SetData(x, y, z, vxl * om, vx_bricks);
-        //    if (vyl < 0) SetData(x, y, z, vyl * om, vy_bricks);
-        //    if (vzl < 0) SetData(x, y, z, vzl * om, vz_bricks);
-        //    if (vxr > 0) SetData(x + 1, y, z, vxr * om, vx_bricks); // cellxr_position
-        //    if (vyr > 0) SetData(x, y + 1, z, vyr * om, vy_bricks); // cellyr_position
-        //    if (vzr > 0) SetData(x, y, z + 1, vzr * om, vz_bricks); // cellzr_position
+        // Add to total brick mass (for brick_updating step, assumes only 1 thread per brick active)
+        storage1.fluidMass[cell.index] += nmat
 
         return .indexUpdated
     }
@@ -863,57 +874,75 @@ public struct VelocityUpdate: EvaluateStep {
     public let name: String = "VelocityUpdate"
     public let scope: CARuleScope = .active
 
-    // float CAPE::IncomingMomentumX(uint x, uint y, uint z)
-    // {
-    //    float yl = GetData(x, y - 1, z, vx_bricks);
-    //    float yr = GetData(x, y + 1, z, vx_bricks);
-    //
-    //    //incoming for x across y axis
-    //    float xym = -min(0.0f, GetData(x - 1, y + 1, z, vy_bricks)) * AL * GetData(x - 1, y + 1, z, m_bricks) * max(0.0f, yr) * AL //left above
-    //        + max(0.0f, GetData(x - 1, y, z, vy_bricks)) * AL * GetData(x - 1, y - 1, z, m_bricks) * max(0.0f, yl) * AL//left below
-    //        + -min(0.0f, GetData(x, y + 1, z, vy_bricks)) * AL * GetData(x, y + 1, z, m_bricks) * min(0.0f, yr) * AL //right above
-    //        + max(0.0f, GetData(x, y, z, vy_bricks)) * AL * GetData(x, y - 1, z, m_bricks) * min(0.0f, yl) * AL; //right below
+    /// Retrieves amount of incoming momentum on the X-axis from tangential moving material across the y and z axis
+    func incomingMomentumX(cell: CAIndex, storage0: StorageType) -> Float {
+        let yl = storage0.fluidVelX[cell.yl]
+        let yr = storage0.fluidVelX[cell.yr]
+        // incoming for x across y axis
+        let xym = -min(0.0, storage0.fluidVelY[cell.xl_yr]) * AL * storage0.fluidMass[cell.xl_yr] * max(0.0, yr) * AL // left above
+            + max(0.0, storage0.fluidVelY[cell.xl]) * AL * storage0.fluidMass[cell.xl_yl] * max(0.0, yl) * AL // left below
+            + -min(0.0, storage0.fluidVelY[cell.yr]) * AL * storage0.fluidMass[cell.yr] * min(0.0, yr) * AL // right above
+            + max(0.0, storage0.fluidVelY[cell.index]) * AL * storage0.fluidMass[cell.yl] * min(0.0, yl) * AL // right below
 
-    //    float zl = GetData(x, y, z - 1, vx_bricks);
-    //    float zr = GetData(x, y, z + 1, vx_bricks);
-    //
-    //    //incoming for x across z axis
-    //    float xzm = -min(0.0f, GetData(x - 1, y, z + 1, vz_bricks)) * AL * GetData(x - 1, y, z + 1, m_bricks) * max(0.0f, zr) * AL //left above
-    //        + max(0.0f, GetData(x - 1, y, z, vz_bricks)) * AL * GetData(x - 1, y, z - 1, m_bricks) * max(0.0f, zl) * AL//left below
-    //        + -min(0.0f, GetData(x, y, z + 1, vz_bricks)) * AL * GetData(x, y, z + 1, m_bricks) * min(0.0f, zr) * AL //right above
-    //        + max(0.0f, GetData(x, y, z, vz_bricks)) * AL * GetData(x, y, z - 1, m_bricks) * min(0.0f, zl) * AL; //right below
-    //    return xym + xzm;
-    // }
+        let zl = storage0.fluidVelX[cell.zl]
+        let zr = storage0.fluidVelX[cell.zr]
 
-//    func incomingMomentumX(cell: CAIndex, storage0: StorageType) -> Float {
-//        let yl_momentum: Float = cell.yl > 0 ? storage0.fluidVelX[cell.yl] : 0.0
-//        let yr_momentum: Float = cell.yr > 0 ? storage0.fluidVelX[cell.yr] : 0.0
-//
-//        // incoming for x across y axis
-//        let xym: Float = -min(0.0, storage0.fluidVelY[cell.xl_yr]) * AL * storage0.fluidMass[cell.xl_yr] * max(0.0, yr_momentum) * AL
-//            // left above
-//
-//        + max(0.0, storage0.fluidVelY[cell.xl]) * AL * storage0.fluidMass[yl_position] * max(0.0, yl_momentum) * AL
-//            // left below
-//
-//        + -min(0.0, storage0.fluidVelY[cell.yr]) * AL * storage0.fluidMass[yr_position] * min(0.0, yr_momentum) * AL
-//            // right above
-//
-//        + max(0.0, storage0.fluidVelY[cell.index]) * AL * storage0.fluidMass[yl_position] * min(0.0, yl_momentum) * AL
-//        // right below
-//
-//        let zl_momentum: Float = cell.zl > 0 ? storage0.fluidVelX[cell.zl] : 0.0
-//        let zr_momentum: Float = cell.zr > 0 ? storage0.fluidVelX[cell.zr] : 0.0
-//
-//        //    float zl = GetData(x, y, z - 1, vx_bricks);
-//        //    float zr = GetData(x, y, z + 1, vx_bricks);
-//        //    //incoming for x across z axis
-//        //    float xzm = -min(0.0f, GetData(x - 1, y, z + 1, vz_bricks)) * AL * GetData(x - 1, y, z + 1, m_bricks) * max(0.0f, zr) * AL //left above
-//        //        + max(0.0f, GetData(x - 1, y, z, vz_bricks)) * AL * GetData(x - 1, y, z - 1, m_bricks) * max(0.0f, zl) * AL//left below
-//        //        + -min(0.0f, GetData(x, y, z + 1, vz_bricks)) * AL * GetData(x, y, z + 1, m_bricks) * min(0.0f, zr) * AL //right above
-//        //        + max(0.0f, GetData(x, y, z, vz_bricks)) * AL * GetData(x, y, z - 1, m_bricks) * min(0.0f, zl) * AL; //right below
-//        //    return xym + xzm;
-//    }
+        // incoming for x across z axis
+        let xzm = -min(0.0, storage0.fluidVelZ[cell.xl_zr]) * AL * storage0.fluidMass[cell.xl_zr] * max(0.0, zr) * AL // left above
+            + max(0.0, storage0.fluidVelZ[cell.xl]) * AL * storage0.fluidMass[cell.xl_zl] * max(0.0, zl) * AL // left below
+            + -min(0.0, storage0.fluidVelZ[cell.zr]) * AL * storage0.fluidMass[cell.zr] * min(0.0, zr) * AL // right above
+            + max(0.0, storage0.fluidVelZ[cell.index]) * AL * storage0.fluidMass[cell.zl] * min(0.0, zl) * AL // right below
+
+        return xym + xzm
+    }
+
+    /// Retrieves amount of incoming momentum on the Y-axis from tangential moving material across the x and z axis
+    func incomingMomentumY(cell: CAIndex, storage0: StorageType) -> Float {
+        let xl = storage0.fluidVelY[cell.xl]
+        let xr = storage0.fluidVelY[cell.xr]
+
+        // incoming for x across y axis
+
+        let yxm = -min(0.0, storage0.fluidVelX[cell.xr_yl]) * AL * storage0.fluidMass[cell.xr_yl] * max(0.0, xr) * AL // left above
+            + max(0.0, storage0.fluidVelX[cell.yr]) * AL * storage0.fluidMass[cell.xr_yr] * max(0.0, xl) * AL // left below
+            + -min(0.0, storage0.fluidVelX[cell.xr]) * AL * storage0.fluidMass[cell.xr] * min(0.0, xr) * AL // right above
+            + max(0.0, storage0.fluidVelX[cell.index]) * AL * storage0.fluidMass[cell.xl] * min(0.0, xl) * AL // right below
+
+        let zl = storage0.fluidVelY[cell.zl]
+        let zr = storage0.fluidVelY[cell.zr]
+
+        //    //incoming for x across z axis
+
+        let yzm = -min(0.0, storage0.fluidVelZ[cell.yl_zr]) * AL * storage0.fluidMass[cell.xl_yr] * max(0.0, zr) * AL // left above
+            + max(0.0, storage0.fluidVelZ[cell.yl]) * AL * storage0.fluidMass[cell.yl_zl] * max(0.0, zl) * AL // left below
+            + -min(0.0, storage0.fluidVelZ[cell.zr]) * AL * storage0.fluidMass[cell.zr] * min(0.0, zr) * AL // right above
+            + max(0.0, storage0.fluidVelZ[cell.index]) * AL * storage0.fluidMass[cell.zl] * min(0.0, zl) * AL // right below
+
+        return yxm + yzm
+    }
+
+    /// Retrieves amount of incoming momentum on the Z-axis from tangential moving material across the x and y axis
+    func incomingMomentumZ(cell: CAIndex, storage0: StorageType) -> Float {
+        let xl = storage0.fluidVelZ[cell.xl]
+        let xr = storage0.fluidVelZ[cell.xr]
+
+        // incoming for x across y axis
+        let zxm = -min(0.0, storage0.fluidVelX[cell.xr_zl]) * AL * storage0.fluidMass[cell.xr_zl] * max(0.0, xr) * AL // left above
+            + max(0.0, storage0.fluidVelX[cell.zl]) * AL * storage0.fluidMass[cell.xl_zl] * max(0.0, xl) * AL // left below
+            + -min(0.0, storage0.fluidVelX[cell.xr]) * AL * storage0.fluidMass[cell.xr] * min(0.0, xr) * AL // right above
+            + max(0.0, storage0.fluidVelX[cell.index]) * AL * storage0.fluidMass[cell.xl] * min(0.0, xl) * AL // right below
+
+        let yl = storage0.fluidVelZ[cell.yl]
+        let yr = storage0.fluidVelZ[cell.yr]
+
+        // incoming for x across z axis
+        let zym = -min(0.0, storage0.fluidVelY[cell.yr_zl]) * AL * storage0.fluidMass[cell.yr_zl] * max(0.0, yr) * AL // left above
+            + max(0.0, storage0.fluidVelY[cell.zl]) * AL * storage0.fluidMass[cell.yl_zl] * max(0.0, yl) * AL // left below
+            + -min(0.0, storage0.fluidVelY[cell.yr]) * AL * storage0.fluidMass[cell.yr] * min(0.0, yr) * AL // right above
+            + max(0.0, storage0.fluidVelY[cell.index]) * AL * storage0.fluidMass[cell.yl] * min(0.0, yl) * AL // right below
+
+        return zxm + zym
+    }
 
     public func evaluate(cell: CAIndex, deltaTime _: Duration, storage0: StorageType, storage1: inout StorageType) -> CARuleResult {
         // Load velocity and mass data so we can process momentum
@@ -928,24 +957,24 @@ public struct VelocityUpdate: EvaluateStep {
         let vzr = storage0.fluidVelZ[cell.zr] // * AL
 
         // load in outgoing mass remembered from the advection step
-        let outgoingmass = storage1.fluidMass[cell.index]
-        let outgoingmass_xl = storage1.fluidMass[cell.xl]
-        let outgoingmass_yl = storage1.fluidMass[cell.yl]
-        let outgoingmass_zl = storage1.fluidMass[cell.zl]
-        let outgoingmass_xl2 = storage1.fluidMass[cell.xl2]
-        let outgoingmass_yl2 = storage1.fluidMass[cell.yl2]
-        let outgoingmass_zl2 = storage1.fluidMass[cell.zl2]
-        let outgoingmass_xr = storage1.fluidMass[cell.xr]
-        let outgoingmass_yr = storage1.fluidMass[cell.yr]
-        let outgoingmass_zr = storage1.fluidMass[cell.zr]
+        let omat = storage1.fluidMass[cell.index]
+        let omatxl = storage1.fluidMass[cell.xl]
+        let omatyl = storage1.fluidMass[cell.yl]
+        let omatzl = storage1.fluidMass[cell.zl]
+        let omatxl2 = storage1.fluidMass[cell.xl2]
+        let omatyl2 = storage1.fluidMass[cell.yl2]
+        let omatzl2 = storage1.fluidMass[cell.zl2]
+        let omatxr = storage1.fluidMass[cell.xr]
+        let omatyr = storage1.fluidMass[cell.yr]
+        let omatzr = storage1.fluidMass[cell.zr]
 
-        let mass = storage0.fluidMass[cell.index]
-        let mass_xl = storage0.fluidMass[cell.xl]
-        let mass_yl = storage0.fluidMass[cell.yl]
-        let mass_zl = storage0.fluidMass[cell.zl]
-        let mass_xr = storage0.fluidMass[cell.xr]
-        let mass_yr = storage0.fluidMass[cell.yr]
-        let mass_zr = storage0.fluidMass[cell.zr]
+        let mat = storage0.fluidMass[cell.index]
+        let matxl = storage0.fluidMass[cell.xl]
+        let matyl = storage0.fluidMass[cell.yl]
+        let matzl = storage0.fluidMass[cell.zl]
+        let matxr = storage0.fluidMass[cell.xr]
+        let matyr = storage0.fluidMass[cell.yr]
+        let matzr = storage0.fluidMass[cell.zr]
 
         // calculate clamped advection numbers to use in colinear momentum calculations
         let avxl = max(0.0, vxl)
@@ -962,14 +991,14 @@ public struct VelocityUpdate: EvaluateStep {
         let avzcr = min(0.0, vz)
 
         // incoming colinear momentum across given axis
-        let imx = (avxl * avxl * outgoingmass_xl2) - (avxr * avxr * outgoingmass_xr)
-        let imy = (avyl * avyl * outgoingmass_yl2) - (avyr * avyr * outgoingmass_yr)
-        let imz = (avzl * avzl * outgoingmass_zl2) - (avzr * avzr * outgoingmass_zr)
+        let imx = (avxl * avxl * omatxl2) - (avxr * avxr * omatxr)
+        let imy = (avyl * avyl * omatyl2) - (avyr * avyr * omatyr)
+        let imz = (avzl * avzl * omatzl2) - (avzr * avzr * omatzr)
 
         // old momentum across axis
-        let mx0 = avxcl * outgoingmass_xl + avxcr * outgoingmass
-        let my0 = avycl * outgoingmass_yl + avycr * outgoingmass
-        let mz0 = avzcl * outgoingmass_zl + avzcr * outgoingmass
+        let mx0 = avxcl * omatxl + avxcr * omat
+        let my0 = avycl * omatyl + avycr * omat
+        let mz0 = avzcl * omatzl + avzcr * omat
 
         // outgoing momentum, stored temporarily during material advection step
         let omx = storage1.fluidVelX[cell.index]
@@ -982,25 +1011,22 @@ public struct VelocityUpdate: EvaluateStep {
         let rmz = mz0 + omz
 
         // New momentum = remainin momentum + incoming colinear momentum + incoming tangential momentum
-        let vcx = rmx + imx // + IncomingMomentumX(x, y, z);
-        let vcy = rmy + imy // + IncomingMomentumY(x, y, z);
-        let vcz = rmz + imz // + IncomingMomentumZ(x, y, z);
+        let vcx = rmx + imx + incomingMomentumX(cell: cell, storage0: storage0)
+        let vcy = rmy + imy + incomingMomentumY(cell: cell, storage0: storage0)
+        let vcz = rmz + imz + incomingMomentumZ(cell: cell, storage0: storage0)
 
-        //    float vcx = rmx + imx + IncomingMomentumX(x, y, z);
-        //    float vcy = rmy + imy + IncomingMomentumY(x, y, z);
-        //    float vcz = rmz + imz + IncomingMomentumZ(x, y, z);
-        //
-        //    //mass of source cell
-        //    float massx = vcx > 0 ? matxl : mat;
-        //    float massy = vcy > 0 ? matyl : mat;
-        //    float massz = vcz > 0 ? matzl : mat;
-        //
-        //    //New velocity *
-        //    float nvcx = massx == 0 ? 0 : vcx / massx * INVAL;
-        //    float nvcy = massy == 0 ? 0 : vcy / massy * INVAL;
-        //    float nvcz = massz == 0 ? 0 : vcz / massz * INVAL;
-        //
-        //    //Add global acceleration
+        // mass of source cell
+        let massx = vcx > 0 ? matxl : mat
+        let massy = vcy > 0 ? matyl : mat
+        let massz = vcz > 0 ? matzl : mat
+
+        // New velocity *
+        let nvcx = massx == 0 ? 0 : vcx / massx * INVAL
+        let nvcy = massy == 0 ? 0 : vcy / massy * INVAL
+        let nvcz = massz == 0 ? 0 : vcz / massz * INVAL
+
+        // Add global acceleration
+
         //    for (int f = 0; f < ga.size(); f++)
         //    {
         //        nvcx += timeStep * ga[f].x;
